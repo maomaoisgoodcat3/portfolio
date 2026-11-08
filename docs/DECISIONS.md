@@ -1,16 +1,39 @@
-# Chapter 1
+# Decisions
 
-1. Chuỗi công cụ đã chốt.
+One line per decision: `- YYYY-MM-DD - <decision> - because <reason>` (reason when there is one).
+Settled decisions are not reopened without a new entry that replaces them.
 
-Antigravity -> Cline + Gemini API -> Copilot -> Ollama -> Tự làm.
- 
+## Product
+- 2026-11-05 - Site content is in English.
+- 2026-11-05 - Use a Vercel subdomain, no custom domain.
+- 2026-11-05 - The project replaces Favorita on the CV; the TradeLab idea is dropped.
+- 2026-11-05 - Never store passwords, financial data or Gmail data on the site.
+- 2026-11-05 - The chatbot reads public data only, enforced at the data layer - because a prompt alone cannot stop data leaks.
+- 2026-11-05 - The paper under review is shown publicly, with a toggle to hide the venue.
+- 2026-11-05 - Backend is Python with a REST API, packaged with Docker, separate from the frontend; deploy via GitHub and Vercel.
+- 2026-11-06 - Frontend is React + TypeScript on Next.js.
+- 2026-11-06 - One repo with `fe/` and `be/`.
+- 2026-11-06 - The public page shows every public block; no filters or per-role views.
+- 2026-11-06 - When there is a choice, pick the more secure option.
+- 2026-11-06 - Accepted security additions: password reset also needs TOTP or a recovery code; recovery codes are one-time and hashed; the chatbot uses a SELECT-only database role on public data; chatbot logs hash IPs with a salt and have a retention period; GitHub working hours are shown coarsely with a hide toggle; database backups are encrypted and never public; the Contact block has no raw address, phone or plain email - because each one closes a concrete attack or privacy leak.
 
-# Chapter 3
+## Tools and agents
+- 2026-11-06 - Agent tool chain: Antigravity -> OpenCode + Gemini API key -> GitHub Copilot (Student) -> Ollama -> manual - because Gemini CLI stopped serving free accounts on 2026-06-18, so tier 2 needs an open-source agent with a free Gemini API key.
+- 2026-11-07 - Antigravity uses the Request Review preset; Turbo is never used; AI Credit Overages set to Never; telemetry off - because every command and plan must be approved by me.
+- 2026-11-08 - Antigravity deny rules use workspace-relative paths: `read_file(.env)`, `read_file(be/.env)` - because a rule target is a path, so `read_file(.env)` alone did not block `be/.env`.
+- 2026-11-08 - OpenCode runs with `"tools": {"bash": false}` and `"bash": "deny"`, and must pass a start-of-session check (asking it to run `git status` must be refused) - because in one test it deleted a folder despite the config; in a later test it blocked correctly.
+- 2026-11-08 - Cline is the backup for tier 2, with every auto-approve option off and YOLO mode never on - because its safety comes from approving each action by hand.
 
-1. Các phiên bản cho yaml.
+## Environment
+- 2026-11-07 - Pure Windows 11 Home: the repo lives at `C:\dev\portfolio`; WSL 2 is only the Docker backend and a place to run Linux commands when needed.
+- 2026-11-07 - Use conda via Miniforge (conda-forge) with one `environment.yml`, instead of venv - because it can manage many kinds of libraries, not only Python.
+- 2026-11-07 - Python 3.12 and Node 24 come from the conda env. (If Node had to be installed from nodejs.org instead, write that here.)
+- 2026-11-07 - Line endings are LF via `.gitattributes` (`.ps1` and `.cmd` stay CRLF) - because the code runs in Linux containers.
+- 2026-11-07 - Real secrets never enter the repo: `.env` files are git-ignored, only `.env.example` with fake values is committed - because the repo is public.
 
-# Name                     Version          Build            Channel
-alembic                    1.20.1           pyh5ded981_0     conda-forge
-fastapi                    0.162.2          h21d2a98_0       conda-forge
-psycopg                    3.3.8            pyh5ded981_1     conda-forge
-sqlalchemy                 2.1.8            py312he5662c2_0  conda-forge
+## Backend and Docker
+- 2026-11-08 - Docker Desktop with the WSL 2 backend - because it is the only option on Windows Home.
+- 2026-11-08 - Images: `postgres:17` for `db`, `python:3.12-slim` for `api`.
+- 2026-11-08 - Every published port binds to 127.0.0.1 - because nothing should be reachable from the local network.
+- 2026-11-08 - Postgres is published on host port 5433 (`127.0.0.1:5433:5432`); the API still uses `db:5432` inside Compose - because a native Windows Postgres already uses port 5432.
+- 2026-11-08 - Library versions in use: Python 3.12.16, pytest 9.2.0, anyio 4.16.0, fastapi <x>, uvicorn <x>, pydantic-settings <x>, sqlalchemy <x>, psycopg <x>, alembic <x>, httpx <x>, ruff <x>, nodejs <x>.
