@@ -5,3 +5,12 @@ dependencies:
   - python=3.12
   - pip
   - nodejs=24
+  - fastapi
+  - uvicorn
+  - pydantic-settings
+  - sqlalchemy
+  - psycopg
+  - alembic
+  - pytest
+  - httpx
+  - ruff
