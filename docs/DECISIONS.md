@@ -23,6 +23,12 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-08 - Antigravity deny rules use workspace-relative paths: `read_file(.env)`, `read_file(be/.env)` - because a rule target is a path, so `read_file(.env)` alone did not block `be/.env`.
 - 2026-11-08 - OpenCode runs with `"tools": {"bash": false}` and `"bash": "deny"`, and must pass a start-of-session check (asking it to run `git status` must be refused) - because in one test it deleted a folder despite the config; in a later test it blocked correctly.
 - 2026-11-08 - Cline is the backup for tier 2, with every auto-approve option off and YOLO mode never on - because its safety comes from approving each action by hand.
+- 2026-11-08 - `AGENTS.md` at the repo root is the single source of agent rules for all four tools - because separate copies per tool drift apart.
+- 2026-11-08 - Repeatable procedures are skills in `.agents/skills/<name>/SKILL.md` (start-task, review-diff, close-task), invoked as `/<name>`; no Antigravity workflows - because workflows stopped working on 2026-11-01 and skills follow an open format read by Antigravity, OpenCode and Copilot.
+- 2026-11-08 - Skills that change files say "Use only when the user types /<name>" in their description - because agents may trigger skills on their own.
+- 2026-11-08 - Backend details live in `.agents/rules/backend.md` with `trigger: glob` on `be/**` - because they only matter when backend files are touched.
+- 2026-11-08 - Cline gets skills by path ("Follow .agents/skills/<name>/SKILL.md") - because Cline does not read `.agents/skills/`.
+- 2026-11-08 - MCP tokens go only in the global `~/.gemini/config/mcp_config.json`, never in `.agents/mcp_config.json`; MCP tools sit in Ask - because the repo is public and MCP servers run with my permissions.
 
 ## Environment
 - 2026-11-07 - Pure Windows 11 Home: the repo lives at `C:\dev\portfolio`; WSL 2 is only the Docker backend and a place to run Linux commands when needed.
