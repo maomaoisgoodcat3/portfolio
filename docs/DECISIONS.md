@@ -67,3 +67,6 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-09 - Visibility and block type use text columns with CHECK constraints instead of Postgres enums - because changing a CHECK constraint is a simpler migration.
 - 2026-11-09 - Admin routes depend on require_admin from T-04 onward, returning 401 until real auth exists in T-05 - because no admin endpoint may ever be open, even between tasks.
 - 2026-11-09 - Task branches are squash-merged into main - because main should show one commit per task.
+- 2026-11-09 - In SQLAlchemy models, use short constraint names (`type`, `visibility`, `title_length`) with MetaData naming convention (`ix`, `uq`, `ck`, `fk`, `pk`) - because explicit full names would duplicate convention prefixes.
+- 2026-11-09 - In Alembic env.py, create engine directly with `create_engine(settings.get_database_url())` without `config.set_main_option` - because URL object is used directly and password exposure in config logs is avoided.
+- 2026-11-09 - In Settings, database credentials and host/port are required without default values - because credentials and target environment should always be explicitly supplied by configuration.
