@@ -1,4 +1,6 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL
 
 
 class Settings(BaseSettings):
@@ -11,11 +13,29 @@ class Settings(BaseSettings):
     app_name: str = "Portfolio API"
     app_env: str = "development"
 
-    postgres_user: str = "portfolio_user"
-    postgres_password: str = "portfolio_password"
-    postgres_db: str = "portfolio_db"
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
+    raw_database_url: str | None = Field(default=None, validation_alias="DATABASE_URL")
+
+    postgres_user: str
+    postgres_password: str
+    postgres_db: str
+    postgres_host: str
+    postgres_port: int
+
+    @property
+    def database_url(self) -> URL | str:
+        return self.get_database_url()
+
+    def get_database_url(self) -> URL | str:
+        if self.raw_database_url:
+            return self.raw_database_url
+        return URL.create(
+            drivername="postgresql+psycopg",
+            username=self.postgres_user,
+            password=self.postgres_password,
+            host=self.postgres_host,
+            port=self.postgres_port,
+            database=self.postgres_db,
+        )
 
 
 settings = Settings()
