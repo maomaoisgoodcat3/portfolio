@@ -107,12 +107,19 @@ project on my CV. Deadline for the MVP: 2026-11-13.
 If late, move these past 2026-11-13 in this order: GitHub adapter, end-to-end tests, login alert email.
 Never postpone login security, authorisation tests or the deploy.
 
-## Open questions (to settle on 2026-11-09)
-- Free hosting for Postgres (and Redis): storage, pgvector, backups, does it sleep when idle?
-- MVP without Redis (rate limits and cache in Postgres)?
-- Can Vercel run the Dockerised backend on the free plan? If not, pick another container platform.
-- Email service (password reset, login alerts) and captcha service.
-- LLM for the chatbot (proposal: Gemini via Google AI Studio, behind an interface).
-- Content of each block (proposal: Profile, About, Skills, Experience, Projects, Research, Profiles, GitHub stats, LeetCode stats, Contact).
-- Admin UI language (proposal: English).
-- Chatbot log retention period.
+## Quota budget (2026-11-09 to 2026-11-12)
+- Antigravity: two 5-hour windows per day, one large task per window; keep the weekly limit for T-05 and T-07.
+- OpenCode: Flash-Lite by default; at most two hard questions per day on Gemini 3.8 Flash (daily limit resets at 15:00 Vietnam time).
+- Copilot: tab completion all day; the 200 monthly AI credits are the last fallback.
+- Ollama: small single tasks only.
+
+## Deployment architecture (decided 2026-11-09)
+- One Vercel project using Vercel Services: `fe/` (Next.js) serves the site, `be/` (FastAPI on the Python runtime) serves `/api/*`. Same domain, so the admin session cookie is HttpOnly, Secure, SameSite=Strict and no CORS is opened.
+- Database: Neon Postgres (Free plan), pooled connection string.
+- Email: Resend (Free plan) from onboarding@resend.dev to the admin's own address.
+- No Redis in the MVP: sessions, login counters and rate limits live in Postgres.
+- Scheduled sync runs in GitHub Actions and writes to the database directly.
+- Serverless rules: no background threads, no in-memory state, migrations run separately, requests never call external APIs.
+
+## Still open (phase 3)
+- LLM for the chatbot (free 3.8 Flash is about 20 requests/day; likely a Flash-Lite model plus caching), captcha service, chatbot log retention.

@@ -29,6 +29,17 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-08 - Backend details live in `.agents/rules/backend.md` with `trigger: glob` on `be/**` - because they only matter when backend files are touched.
 - 2026-11-08 - Cline gets skills by path ("Follow .agents/skills/<name>/SKILL.md") - because Cline does not read `.agents/skills/`.
 - 2026-11-08 - MCP tokens go only in the global `~/.gemini/config/mcp_config.json`, never in `.agents/mcp_config.json`; MCP tools sit in Ask - because the repo is public and MCP servers run with my permissions.
+- 2026-11-09 - In OpenCode 1.x, skills are invoked by name ("Use the start-task skill for task T-03") or through thin wrappers in .opencode/commands/ - because OpenCode 1.x does not list skills in the / menu.
+- 2026-11-09 - In Copilot, skills are invoked by path ("Follow .agents/skills/<name>/SKILL.md") until they appear in the / menu - because the / menu did not list them in the test.
+- 2026-11-09 - Cline is paused; if OpenCode fails its start-of-session check, go straight to Copilot - because Cline responded too slowly to be usable.
+- 2026-11-09 - One task per conversation; when a conversation gets long, write a handoff note and start a new one instead of using /compact - because a summary made by the agent can drop rules, while a handoff note lives in the repo.
+- 2026-11-09 - Switching tools mid-task: commit WIP on the task branch, write a handoff note (Done, In progress, Next step, Last test run, Do not touch, Open questions), then open the new tool with the standard handoff prompt - because tools do not share memory; only the repo carries context.
+- 2026-11-09 - Never run /init in OpenCode or Copilot - because it would rewrite AGENTS.md or add a second instruction file.
+- 2026-11-09 - Local models (Ollama, qwen2.5-coder 3B, 4k context) are used only through `ollama run` for small single tasks: regex, docstrings, commit messages, explaining under 80 lines - because the machine has little free RAM and OpenCode's prompt does not fit in 4k tokens.
+- 2026-11-09 - OpenCode + Ollama: <not set up / tried, result: ...>.
+- 2026-11-09 - OpenCode uses a Flash-Lite model (<exact model id>) by default (set in the global ~/.config/opencode/opencode.json, not in the repo) and switches to gemini-3.8-flash only for hard steps - because the free Gemini API tier allows 20 requests per day for 3.8 Flash and 3.6 Flash (checked in AI Studio on 2026-11-09) and <RPD> for Flash-Lite, and each agent loop is one request.
+- 2026-11-09 - Work is routed by size: tab completion (Copilot) for line-level code, Ollama for small single tasks, OpenCode for small fixes, Antigravity for multi-file tasks with a plan - because the Antigravity weekly limit must last until the deploy on 2026-11-12.
+- 2026-11-09 - Prompts state which files the agent may read ("Read only ... Ask before opening any other file.") - because unscoped prompts made the agent read about ten files for a two-file task.
 
 ## Environment
 - 2026-11-07 - Pure Windows 11 Home: the repo lives at `C:\dev\portfolio`; WSL 2 is only the Docker backend and a place to run Linux commands when needed.
@@ -43,3 +54,19 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-08 - Every published port binds to 127.0.0.1 - because nothing should be reachable from the local network.
 - 2026-11-08 - Postgres is published on host port 5433 (`127.0.0.1:5433:5432`); the API still uses `db:5432` inside Compose - because a native Windows Postgres already uses port 5432.
 - 2026-11-08 - Library versions in use: Python 3.12.16, pytest 9.2.0, anyio 4.16.0, fastapi <x>, uvicorn <x>, pydantic-settings <x>, sqlalchemy <x>, psycopg <x>, alembic <x>, httpx <x>, ruff <x>, nodejs <x>.
+
+
+## Architecture (2026-11-09)
+- 2026-11-09 - Deploy frontend and backend as one Vercel project with Vercel Services; FastAPI on the native Python runtime, not the container runtime - because one domain allows a SameSite=Strict session cookie without CORS, and the container runtime is still in beta.
+- 2026-11-09 - Neon Postgres Free plan for production - because it is free, includes pgvector for phase 3, and scales to zero when idle.
+- 2026-11-09 - Resend Free plan, sending from onboarding@resend.dev to the admin's own address - because all emails go to the admin only, so no custom domain is needed.
+- 2026-11-09 - No Redis in the MVP; sessions, login counters and rate limits are stored in Postgres - because serverless functions keep no memory between requests and one fewer service is easier to secure.
+- 2026-11-09 - Nine block types: profile, about, skills, experience, projects, research, links, stats, contact; external profile links are "links" (not "profiles") - because "profile" and "profiles" were too easy to confuse.
+- 2026-11-09 - One "stats" block type for every external site: each item names a provider; synced data goes to one external_stats table keyed by (provider, account); each site is a subclass of BaseStatsAdapter in a registry, and Pydantic validates items with a discriminated union on provider - because adding a site must not need a schema migration.
+- 2026-11-09 - New blocks and items default to visibility 'admin' - because new content must never become public by accident.
+- 2026-11-09 - Visibility and block type use text columns with CHECK constraints instead of Postgres enums - because changing a CHECK constraint is a simpler migration.
+- 2026-11-09 - Admin routes depend on require_admin from T-04 onward, returning 401 until real auth exists in T-05 - because no admin endpoint may ever be open, even between tasks.
+- 2026-11-09 - Task branches are squash-merged into main - because main should show one commit per task.
+- 2026-11-09 - In SQLAlchemy models, use short constraint names (`type`, `visibility`, `title_length`) with MetaData naming convention (`ix`, `uq`, `ck`, `fk`, `pk`) - because explicit full names would duplicate convention prefixes.
+- 2026-11-09 - In Alembic env.py, create engine directly with `create_engine(settings.get_database_url())` without `config.set_main_option` - because URL object is used directly and password exposure in config logs is avoided.
+- 2026-11-09 - In Settings, database credentials and host/port are required without default values - because credentials and target environment should always be explicitly supplied by configuration.
