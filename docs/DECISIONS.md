@@ -54,3 +54,16 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-08 - Every published port binds to 127.0.0.1 - because nothing should be reachable from the local network.
 - 2026-11-08 - Postgres is published on host port 5433 (`127.0.0.1:5433:5432`); the API still uses `db:5432` inside Compose - because a native Windows Postgres already uses port 5432.
 - 2026-11-08 - Library versions in use: Python 3.12.16, pytest 9.2.0, anyio 4.16.0, fastapi <x>, uvicorn <x>, pydantic-settings <x>, sqlalchemy <x>, psycopg <x>, alembic <x>, httpx <x>, ruff <x>, nodejs <x>.
+
+
+## Architecture (2026-11-09)
+- 2026-11-09 - Deploy frontend and backend as one Vercel project with Vercel Services; FastAPI on the native Python runtime, not the container runtime - because one domain allows a SameSite=Strict session cookie without CORS, and the container runtime is still in beta.
+- 2026-11-09 - Neon Postgres Free plan for production - because it is free, includes pgvector for phase 3, and scales to zero when idle.
+- 2026-11-09 - Resend Free plan, sending from onboarding@resend.dev to the admin's own address - because all emails go to the admin only, so no custom domain is needed.
+- 2026-11-09 - No Redis in the MVP; sessions, login counters and rate limits are stored in Postgres - because serverless functions keep no memory between requests and one fewer service is easier to secure.
+- 2026-11-09 - Nine block types: profile, about, skills, experience, projects, research, links, stats, contact; external profile links are "links" (not "profiles") - because "profile" and "profiles" were too easy to confuse.
+- 2026-11-09 - One "stats" block type for every external site: each item names a provider; synced data goes to one external_stats table keyed by (provider, account); each site is a subclass of BaseStatsAdapter in a registry, and Pydantic validates items with a discriminated union on provider - because adding a site must not need a schema migration.
+- 2026-11-09 - New blocks and items default to visibility 'admin' - because new content must never become public by accident.
+- 2026-11-09 - Visibility and block type use text columns with CHECK constraints instead of Postgres enums - because changing a CHECK constraint is a simpler migration.
+- 2026-11-09 - Admin routes depend on require_admin from T-04 onward, returning 401 until real auth exists in T-05 - because no admin endpoint may ever be open, even between tasks.
+- 2026-11-09 - Task branches are squash-merged into main - because main should show one commit per task.

@@ -55,3 +55,13 @@
 - Standard prompt sections: Context, Goal, Acceptance criteria, Scope, Constraints, Output.
 - Paste full error output; never trim logs.
 - At most three files per agent turn.
+
+## Database
+- Table names are plural snake_case; primary keys are uuid generated in Python.
+- Every table has created_at and updated_at (timestamptz, default now()).
+- Every schema change is an Alembic migration that also downgrades; never edit a migration that has been applied.
+- Run migrations inside the api container: docker compose exec api alembic upgrade head.
+
+## API
+- Public routes under /api/public/*, admin routes under /api/admin/* and always behind require_admin.
+- Errors use HTTPException with a short detail; never return stack traces or SQL.
