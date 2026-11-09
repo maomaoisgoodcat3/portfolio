@@ -29,6 +29,17 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-08 - Backend details live in `.agents/rules/backend.md` with `trigger: glob` on `be/**` - because they only matter when backend files are touched.
 - 2026-11-08 - Cline gets skills by path ("Follow .agents/skills/<name>/SKILL.md") - because Cline does not read `.agents/skills/`.
 - 2026-11-08 - MCP tokens go only in the global `~/.gemini/config/mcp_config.json`, never in `.agents/mcp_config.json`; MCP tools sit in Ask - because the repo is public and MCP servers run with my permissions.
+- 2026-11-09 - In OpenCode 1.x, skills are invoked by name ("Use the start-task skill for task T-03") or through thin wrappers in .opencode/commands/ - because OpenCode 1.x does not list skills in the / menu.
+- 2026-11-09 - In Copilot, skills are invoked by path ("Follow .agents/skills/<name>/SKILL.md") until they appear in the / menu - because the / menu did not list them in the test.
+- 2026-11-09 - Cline is paused; if OpenCode fails its start-of-session check, go straight to Copilot - because Cline responded too slowly to be usable.
+- 2026-11-09 - One task per conversation; when a conversation gets long, write a handoff note and start a new one instead of using /compact - because a summary made by the agent can drop rules, while a handoff note lives in the repo.
+- 2026-11-09 - Switching tools mid-task: commit WIP on the task branch, write a handoff note (Done, In progress, Next step, Last test run, Do not touch, Open questions), then open the new tool with the standard handoff prompt - because tools do not share memory; only the repo carries context.
+- 2026-11-09 - Never run /init in OpenCode or Copilot - because it would rewrite AGENTS.md or add a second instruction file.
+- 2026-11-09 - Local models (Ollama, qwen2.5-coder 3B, 4k context) are used only through `ollama run` for small single tasks: regex, docstrings, commit messages, explaining under 80 lines - because the machine has little free RAM and OpenCode's prompt does not fit in 4k tokens.
+- 2026-11-09 - OpenCode + Ollama: <not set up / tried, result: ...>.
+- 2026-11-09 - OpenCode uses a Flash-Lite model (<exact model id>) by default (set in the global ~/.config/opencode/opencode.json, not in the repo) and switches to gemini-3.8-flash only for hard steps - because the free Gemini API tier allows 20 requests per day for 3.8 Flash and 3.6 Flash (checked in AI Studio on 2026-11-09) and <RPD> for Flash-Lite, and each agent loop is one request.
+- 2026-11-09 - Work is routed by size: tab completion (Copilot) for line-level code, Ollama for small single tasks, OpenCode for small fixes, Antigravity for multi-file tasks with a plan - because the Antigravity weekly limit must last until the deploy on 2026-11-12.
+- 2026-11-09 - Prompts state which files the agent may read ("Read only ... Ask before opening any other file.") - because unscoped prompts made the agent read about ten files for a two-file task.
 
 ## Environment
 - 2026-11-07 - Pure Windows 11 Home: the repo lives at `C:\dev\portfolio`; WSL 2 is only the Docker backend and a place to run Linux commands when needed.

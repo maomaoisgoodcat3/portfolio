@@ -107,6 +107,12 @@ project on my CV. Deadline for the MVP: 2026-11-13.
 If late, move these past 2026-11-13 in this order: GitHub adapter, end-to-end tests, login alert email.
 Never postpone login security, authorisation tests or the deploy.
 
+## Quota budget (2026-11-09 to 2026-11-12)
+- Antigravity: two 5-hour windows per day, one large task per window; keep the weekly limit for T-05 and T-07.
+- OpenCode: Flash-Lite by default; at most two hard questions per day on Gemini 3.8 Flash (daily limit resets at 15:00 Vietnam time).
+- Copilot: tab completion all day; the 200 monthly AI credits are the last fallback.
+- Ollama: small single tasks only.
+
 ## Open questions (to settle on 2026-11-09)
 - Free hosting for Postgres (and Redis): storage, pgvector, backups, does it sleep when idle?
 - MVP without Redis (rate limits and cache in Postgres)?

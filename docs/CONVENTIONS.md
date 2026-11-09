@@ -39,6 +39,7 @@
   with scope `be`, `fe`, `infra` or `docs`. Example: `feat(be): add health check`.
 - Check `git status` before every commit; no `.env` file may be staged.
 - I push myself; agents never push.
+- Work on a task branch (`git switch -c task/T-03-short-name`). WIP commits use the type `wip` (`wip(be): T-03 handoff`) and never go to `main` unsquashed.
 
 ## Tasks
 - `docs/TASKS.md` uses IDs `T-01`, `T-02`, ... Each task has a status:
@@ -49,3 +50,8 @@
 - Files in `.agents/rules/` start with YAML frontmatter that has a `trigger`.
 - Skills live in `.agents/skills/<name>/SKILL.md`; `<name>` is lowercase with
   hyphens and matches the `name` field. No Antigravity workflows.
+
+## Prompts
+- Standard prompt sections: Context, Goal, Acceptance criteria, Scope, Constraints, Output.
+- Paste full error output; never trim logs.
+- At most three files per agent turn.
