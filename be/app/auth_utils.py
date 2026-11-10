@@ -4,11 +4,14 @@ Nothing in this module logs passwords, codes, tokens or secrets.
 """
 
 import hashlib
+import hmac
+import re
 import secrets
+import time
 
 import pyotp
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 from cryptography.fernet import Fernet
 
 _ph = PasswordHasher()
@@ -31,7 +34,7 @@ def verify_password(plain: str, hashed: str) -> bool:
     """
     try:
         return _ph.verify(hashed, plain)
-    except VerifyMismatchError:
+    except (VerifyMismatchError, VerificationError, InvalidHashError):
         return False
 
 
@@ -77,12 +80,33 @@ def make_totp_uri(secret: str, email: str) -> str:
     )
 
 
-def verify_totp_code(secret: str, code: str, valid_window: int = 1) -> bool:
-    """Return True if *code* is a valid TOTP token for *secret*.
+def verify_totp_code(secret: str, code: str, last_step: int | None) -> int | None:
+    """Verify a TOTP *code* against *secret* with replay protection.
 
-    *valid_window=1* accepts the previous and next 30-second windows.
+    Checks the previous, current, and next 30-second time steps.
+    Returns the matched time step (int) on success, or None on failure.
+
+    Returns None if:
+    - *code* is not exactly 6 ASCII digits.
+    - No time step matches.
+    - The matched step is <= *last_step* (replay detected).
+
+    Pass *last_step=None* when there is no prior step (e.g. first login or CLI).
     """
-    return pyotp.TOTP(secret).verify(code, valid_window=valid_window)
+    if not re.fullmatch(r"\d{6}", code):
+        return None
+
+    now_step = int(time.time()) // 30
+    totp = pyotp.TOTP(secret)
+
+    for step in (now_step - 1, now_step, now_step + 1):
+        expected = totp.at(step * 30)
+        if hmac.compare_digest(code, expected):
+            if last_step is not None and step <= last_step:
+                return None  # replay rejected
+            return step
+
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -107,5 +131,5 @@ def verify_recovery_code(plain: str, hashed: str) -> bool:
     """Return True if plain recovery *code* matches *hashed*, False otherwise."""
     try:
         return _ph.verify(hashed, plain)
-    except VerifyMismatchError:
+    except (VerifyMismatchError, VerificationError, InvalidHashError):
         return False

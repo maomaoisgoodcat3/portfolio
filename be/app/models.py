@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -134,6 +135,10 @@ class AdminUser(Base):
         default=True,
         server_default=text("true"),
     )
+    totp_last_step: Mapped[int | None] = mapped_column(
+        BigInteger,
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -152,8 +157,8 @@ class AdminUser(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
-    sessions: Mapped[list["Session"]] = relationship(
-        "Session",
+    sessions: Mapped[list["AdminSession"]] = relationship(
+        "AdminSession",
         back_populates="admin_user",
         cascade="all, delete-orphan",
         passive_deletes=True,
@@ -197,7 +202,7 @@ class RecoveryCode(Base):
     )
 
 
-class Session(Base):
+class AdminSession(Base):
     __tablename__ = "sessions"
 
     __table_args__ = (

@@ -31,6 +31,7 @@ def upgrade() -> None:
             server_default=sa.text("true"),
             nullable=False,
         ),
+        sa.Column("totp_last_step", sa.BigInteger(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
