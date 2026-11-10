@@ -76,3 +76,6 @@
 - Never log passwords, TOTP codes, recovery codes, tokens or secrets.
 - Auth tests use TestClient(app, base_url="https://testserver").
 - New secrets go in be/.env with a placeholder in be/.env.example; agents never read be/.env.
+
+## Tooling
+- MCP servers live in tools/<name>, use their own conda env, are read-only unless a task says otherwise, and never write to stdout.
