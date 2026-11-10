@@ -123,3 +123,6 @@ Never postpone login security, authorisation tests or the deploy.
 
 ## Still open (phase 3)
 - LLM for the chatbot (free 3.8 Flash is about 20 requests/day; likely a Flash-Lite model plus caching), captcha service, chatbot log retention.
+
+## Dev tooling
+- tools/brain: read-only MCP server (project-brain) that lets Antigravity and OpenCode read task rows and decisions without opening the whole docs folder. Own conda env: brain.

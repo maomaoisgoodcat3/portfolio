@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 
@@ -8,10 +8,13 @@ class Settings(BaseSettings):
         env_file=(".env", "be/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        hide_input_in_errors=True,
     )
 
     app_name: str = "Portfolio API"
     app_env: str = "development"
+
+    totp_enc_key: str = Field(validation_alias="TOTP_ENC_KEY")
 
     raw_database_url: str | None = Field(default=None, validation_alias="DATABASE_URL")
 
@@ -20,6 +23,20 @@ class Settings(BaseSettings):
     postgres_db: str
     postgres_host: str
     postgres_port: int
+
+    @model_validator(mode="after")
+    def _validate_fernet_key(self) -> "Settings":
+        from cryptography.fernet import Fernet
+
+        try:
+            Fernet(self.totp_enc_key.encode())
+        except Exception:
+            raise ValueError(
+                "TOTP_ENC_KEY is not a valid Fernet key. "
+                "Generate one with: "
+                'python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
+            ) from None
+        return self
 
     @property
     def database_url(self) -> URL | str:
