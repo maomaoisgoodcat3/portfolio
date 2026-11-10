@@ -52,13 +52,16 @@ def promote_session(
     now: datetime | None = None,
 ) -> tuple[str, str]:
     current = _get_now(now)
+    admin_user_id = pending.admin_user_id
+    if pending.mfa_passed or pending.expires_at <= current:
+        raise ValueError("Pending session is invalid")
     raw_token = secrets.token_urlsafe(32)
     csrf_token = secrets.token_urlsafe(32)
     db.delete(pending)
     db.flush()
     db.add(
         AdminSession(
-            admin_user_id=pending.admin_user_id,
+            admin_user_id=admin_user_id,
             token_hash=hash_token(raw_token),
             csrf_token=csrf_token,
             mfa_passed=True,
