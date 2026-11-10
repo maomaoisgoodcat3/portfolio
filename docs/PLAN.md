@@ -58,7 +58,7 @@ project on my CV. Deadline for the MVP: 2026-11-13.
 - Security headers (CSP, ...), strict CORS, API rate limits.
 - Secrets only in environment variables, never in the repo.
 - Dependency vulnerability scanning. Encrypted database backups, never stored publicly.
-- Contact block shows no raw home address, phone number or plain-text email (use a form or an obfuscated email).
+- Contact blocks hide their text until a Reveal click. Prefer links (LinkedIn, a form) over a raw phone number or plain email; a public phone block is an accepted risk (DECISIONS 2026-11-11).
 
 ### Authorisation
 - Checked on the backend for every endpoint, not by hiding buttons in the frontend.
@@ -108,6 +108,7 @@ If late, move these past 2026-11-13 in this order: GitHub adapter, end-to-end te
 Never postpone login security, authorisation tests or the deploy.
 
 ## Quota budget (2026-11-09 to 2026-11-12)
+- 2026-11-10 update: Antigravity has no quota until 2026-11-15 (Gemini) and 2026-11-17 (Claude/GPT); Copilot Agent (Fusion) takes multi-file work and OpenCode Flash-Lite small fixes (DECISIONS 2026-11-10).
 - Antigravity: two 5-hour windows per day, one large task per window; keep the weekly limit for T-05 and T-07.
 - OpenCode: Flash-Lite by default; at most two hard questions per day on Gemini 3.8 Flash (daily limit resets at 15:00 Vietnam time).
 - Copilot: tab completion all day; the 200 monthly AI credits are the last fallback.

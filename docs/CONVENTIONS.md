@@ -6,7 +6,7 @@
 
 ## Repository layout
 - `be/` backend (FastAPI): app code in `be/app/`, tests in `be/tests/`.
-- `fe/` frontend (Next.js, not created yet).
+- `fe/` frontend (Next.js App Router, TypeScript, Tailwind v4) in `fe/src/`.
 - `docs/` PLAN, TASKS, DECISIONS, CONVENTIONS.
 - `AGENTS.md` and `.agents/` (rules and skills) for AI agents.
 - `docker-compose.yml`, `environment.yml`, `.gitattributes`, `.gitignore` at the repo root.
@@ -40,12 +40,26 @@
 - Never use dangerouslySetInnerHTML. Links are rendered only for http:// and https:// URLs (safeHref).
 - The dev server binds to 127.0.0.1 (next dev -H 127.0.0.1).
 - Before every commit, in fe/: npm run lint, npx tsc --noEmit, npm run build.
-
+- State (useState) lives only in components marked "use client"; page.tsx holds no state.
+- User text always wraps (overflow-wrap: anywhere); no fixed widths and no horizontal scroll at 360px.
+- next.config.ts is edited by adding keys only, never replaced; the Tailwind loader lives in turbopack.rules.
 ## Block content keys
-- profile props: name, headline, location, avatar_url (https image URL). about props: text. contact props: text.
-- skills items: name, level. experience, projects, research items: title, subtitle, period, description, url, tags (string array).
-- links and contact items: label, url. stats items: provider, account, show.
-- Missing keys render nothing; unknown keys are ignored.
+
+One block = one entry. Only `profile` is limited to one block. Items stay in the database but are not used in the UI.
+
+| type | title | props |
+|---|---|---|
+| profile | not shown | name, headline, location, avatar_url (https only) |
+| links | link text | url (required) |
+| contact | label, e.g. "Email" | content (shown after Reveal) |
+| about | heading | content |
+| experience | role | subtitle (company), period, content, url |
+| projects | project name | period, content, url, tags |
+| research | paper title | subtitle (venue or status), period, content, url |
+| skills | group name | tags |
+| stats | label | provider ("github"), account |
+
+Public page: profile fills the top half of the fixed left sidebar; links, then contact, fill the bottom half, which scrolls on its own. Other types are grouped in this order: about, experience, projects, research, skills, stats. Every url goes through `safeHref`. Missing keys render nothing.
 
 ## Git
 - One branch per task: `task/T-02-short-name`.
@@ -54,7 +68,7 @@
 - Check `git status` before every commit; no `.env` file may be staged.
 - I push myself; agents never push.
 - Work on a task branch (`git switch -c task/T-03-short-name`). WIP commits use the type `wip` (`wip(be): T-03 handoff`) and never go to `main` unsquashed.
-
+- Commit a wip checkpoint as soon as an agent finishes, before testing. Never use Discard in the Source Control view on uncommitted agent work.
 ## Tasks
 - `docs/TASKS.md` uses IDs `T-01`, `T-02`, ... Each task has a status:
   `todo`, `doing` or `done`.
@@ -73,7 +87,8 @@
 ## Database
 - Table names are plural snake_case; primary keys are uuid generated in Python, except rate_limits (text key).
 - Content tables have created_at and updated_at (timestamptz, default now()); state and log tables (sessions, recovery_codes, login_events, rate_limits) keep only the timestamps they need.
-- Every schema change is an Alembic migration that also downgrades. After the first deploy, never edit an applied migration; before it, editing is allowed only with downgrade and upgrade on every database that ran it.- Run migrations inside the api container: docker compose exec api alembic upgrade head.
+- Every schema change is an Alembic migration that also downgrades. After the first deploy, never edit an applied migration; before it, editing is allowed only with downgrade and upgrade on every database that ran it.
+- Run migrations inside the api container: docker compose exec api alembic upgrade head.
 
 ## API
 - Public routes under /api/public/*, admin routes under /api/admin/* and always behind require_admin.
