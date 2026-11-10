@@ -99,3 +99,4 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-10 - Diffs for review are written with `git diff main...HEAD --output=review.diff` (not `>`), reviewed, then deleted - because PowerShell 5.1 redirection writes UTF-16 and a stale diff could be reviewed by mistake.
 - 2026-11-10 - Shared test logs use `pytest -q --tb=short` - because long tracebacks printed the database connection string with its password.
 - 2026-11-10 - The default branch is main (renamed from master) - because every doc, skill and convention says main.
+- 2026-11-10 - The project-brain MCP server (tools/brain) is read-only, reads only docs/TASKS.md and docs/DECISIONS.md, takes no paths as input, returns JSON text capped at 8000 characters, runs in its own conda env brain, and is configured in each tool's global config - because the config holds machine paths and the server must not widen what agents can reach.
