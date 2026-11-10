@@ -30,6 +30,12 @@ class Block(Base):
         ),
         CheckConstraint("char_length(title) <= 200", name="title_length"),
         CheckConstraint("visibility IN ('public', 'admin')", name="visibility"),
+        Index(
+            "uq_blocks_singleton_type",
+            "type",
+            unique=True,
+            postgresql_where=text("type IN ('profile', 'links', 'contact')"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

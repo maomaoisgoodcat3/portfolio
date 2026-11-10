@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.deps import get_db, require_admin
@@ -68,6 +69,13 @@ def create_block(
     payload: BlockCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> BlockResponse:
+    if payload.type in {"profile", "links", "contact"}:
+        if db.scalar(select(Block.id).where(Block.type == payload.type)) is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Only one {payload.type} block is allowed",
+            )
+
     max_pos = db.scalar(select(func.max(Block.position)))
     new_position = (max_pos + 1) if max_pos is not None else 0
 
@@ -79,7 +87,16 @@ def create_block(
         position=new_position,
     )
     db.add(block)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        if payload.type in {"profile", "links", "contact"}:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Only one {payload.type} block is allowed",
+            ) from None
+        raise
     db.refresh(block)
 
     return BlockResponse(

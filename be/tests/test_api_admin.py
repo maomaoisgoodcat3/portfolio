@@ -45,6 +45,49 @@ def test_admin_create_block_auto_position(admin_client: TestClient) -> None:
     assert b2["visibility"] == "admin"
 
 
+def test_admin_create_second_profile_returns_409(admin_client: TestClient) -> None:
+    first = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "profile", "title": "Profile"},
+    )
+    assert first.status_code == 201
+
+    second = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "profile", "title": "Another profile"},
+    )
+    assert second.status_code == 409
+    assert second.json() == {"detail": "Only one profile block is allowed"}
+
+
+def test_admin_create_second_links_returns_409(admin_client: TestClient) -> None:
+    first = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "links", "title": "Links"},
+    )
+    assert first.status_code == 201
+
+    second = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "links", "title": "More links"},
+    )
+    assert second.status_code == 409
+    assert second.json() == {"detail": "Only one links block is allowed"}
+
+
+def test_admin_create_two_projects_blocks_allowed(admin_client: TestClient) -> None:
+    first = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "projects", "title": "Projects"},
+    )
+    second = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "projects", "title": "More projects"},
+    )
+    assert first.status_code == 201
+    assert second.status_code == 201
+
+
 def test_admin_create_block_validation_errors(admin_client: TestClient) -> None:
     # Invalid block type
     res = admin_client.post(
