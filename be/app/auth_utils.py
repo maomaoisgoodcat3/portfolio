@@ -93,7 +93,7 @@ def verify_totp_code(secret: str, code: str, last_step: int | None) -> int | Non
 
     Pass *last_step=None* when there is no prior step (e.g. first login or CLI).
     """
-    if not re.fullmatch(r"\d{6}", code):
+    if not re.fullmatch(r"[0-9]{6}", code):
         return None
 
     now_step = int(time.time()) // 30

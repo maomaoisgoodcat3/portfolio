@@ -8,6 +8,7 @@ class Settings(BaseSettings):
         env_file=(".env", "be/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        hide_input_in_errors=True,
     )
 
     app_name: str = "Portfolio API"
@@ -34,7 +35,7 @@ class Settings(BaseSettings):
                 "TOTP_ENC_KEY is not a valid Fernet key. "
                 "Generate one with: "
                 'python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
-            )
+            ) from None
         return self
 
     @property

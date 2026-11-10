@@ -72,12 +72,36 @@ def test_totp_verify_valid_code() -> None:
 
     secret = generate_totp_secret()
     code = pyotp.TOTP(secret).now()
-    assert verify_totp_code(secret, code) is True
+    assert isinstance(verify_totp_code(secret, code, None), int)
 
 
 def test_totp_verify_invalid_code() -> None:
     secret = generate_totp_secret()
-    assert verify_totp_code(secret, "000000") is False
+    assert verify_totp_code(secret, "000000", None) is None
+
+
+def test_totp_verify_replay_rejected() -> None:
+    import pyotp
+
+    secret = generate_totp_secret()
+    totp = pyotp.TOTP(secret)
+    code = totp.now()
+    matched_step = verify_totp_code(secret, code, None)
+    assert matched_step is not None
+    assert verify_totp_code(secret, code, matched_step) is None
+
+
+def test_totp_verify_non_ascii_digits_rejected() -> None:
+    secret = generate_totp_secret()
+    assert verify_totp_code(secret, "١٢٣٤٥٦", None) is None
+
+
+def test_verify_password_corrupted_hash() -> None:
+    assert verify_password("some-password", "not-a-hash") is False
+
+
+def test_verify_recovery_code_corrupted_hash() -> None:
+    assert verify_recovery_code("some-code", "not-a-hash") is False
 
 
 def test_make_totp_uri_contains_issuer_and_email() -> None:
