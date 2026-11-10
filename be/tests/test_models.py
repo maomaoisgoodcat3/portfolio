@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
 
+from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Index
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+
 from app.config import Settings
 from app.db import Base
 from app.models import Block, BlockItem
-from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Index
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 
 def test_settings_database_url_from_components() -> None:
