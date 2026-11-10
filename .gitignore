@@ -3,3 +3,6 @@
 !.env.example
 
 scratch
+
+__pycache__/
+*.pyc
