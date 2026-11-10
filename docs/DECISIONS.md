@@ -100,3 +100,11 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-10 - Shared test logs use `pytest -q --tb=short` - because long tracebacks printed the database connection string with its password.
 - 2026-11-10 - The default branch is main (renamed from master) - because every doc, skill and convention says main.
 - 2026-11-10 - The project-brain MCP server (tools/brain) is read-only, reads only docs/TASKS.md and docs/DECISIONS.md, takes no paths as input, returns JSON text capped at 8000 characters, runs in its own conda env brain, and is configured in each tool's global config - because the config holds machine paths and the server must not widen what agents can reach.
+
+
+## Frontend (2026-11-11)
+- 2026-11-11 - Next.js App Router with TypeScript strict and Tailwind in fe/src - because it is the standard create-next-app setup and agents know it well.
+- 2026-11-11 - The public page fetches /api/public/blocks on the client in the MVP; server-side rendering for SEO comes after the deploy - because it works the same in local dev and on Vercel with no extra configuration.
+- 2026-11-11 - In development, next.config.ts rewrites /api/* to the FastAPI container; in production the rewrite is off and Vercel routes /api/* to the Python service - because the browser must always see one origin for the session cookie.
+- 2026-11-11 - Admin edits props and data as JSON text in the MVP - because a form per block type would not fit before the deadline, and the backend already validates sizes and stats items.
+- 2026-11-11 - Links render only for http and https URLs, and no component uses dangerouslySetInnerHTML - because block content is user input and javascript: URLs are an XSS vector.
