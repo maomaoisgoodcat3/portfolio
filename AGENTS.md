@@ -7,7 +7,7 @@ details live in `docs/`.
 ## Project
 Personal portfolio website for a CV. Monorepo:
 - `be/` - FastAPI backend (Python 3.12). Entry point `be/app/main.py`, settings in `be/app/config.py`.
-- `fe/` - Next.js + TypeScript frontend (not created yet).
+- `fe/` - Next.js + TypeScript frontend (App Router, `fe/src/`). Run npm commands from `fe/`.
 - `docker-compose.yml` - Postgres 17 (`db`) and the API (`api`).
 - `docs/` - PLAN, TASKS, DECISIONS, CONVENTIONS.
 

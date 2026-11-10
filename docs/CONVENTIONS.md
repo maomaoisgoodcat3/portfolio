@@ -31,7 +31,18 @@
   one behaviour per test.
 
 ## TypeScript (fe/)
-- Filled in when the frontend starts. Strict mode on.
+- Next.js App Router in fe/src/app, TypeScript strict, Tailwind. Run npm commands from fe/.
+- All backend calls go through fe/src/lib/api.ts, always to relative /api/... URLs, with credentials "same-origin".
+- The CSRF token lives in React state only (never localStorage, sessionStorage or a cookie set by the frontend) and is sent as X-CSRF-Token on POST, PUT, PATCH and DELETE.
+- Never use dangerouslySetInnerHTML. Links are rendered only for http:// and https:// URLs (safeHref).
+- The dev server binds to 127.0.0.1 (next dev -H 127.0.0.1).
+- Before every commit, in fe/: npm run lint, npx tsc --noEmit, npm run build.
+
+## Block content keys
+- profile props: name, headline, location. about props: text. contact props: text.
+- skills items: name, level. experience, projects, research items: title, subtitle, period, description, url, tags (string array).
+- links and contact items: label, url. stats items: provider, account, show.
+- Missing keys render nothing; unknown keys are ignored.
 
 ## Git
 - One branch per task: `task/T-02-short-name`.
