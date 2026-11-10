@@ -32,7 +32,9 @@ def validate_32kb(v: dict[str, Any] | None) -> dict[str, Any] | None:
 
 # Stats item discriminated union
 class GithubStatsItemData(BaseModel):
-    provider: Literal["github"] = "github"
+    model_config = ConfigDict(extra="forbid")
+
+    provider: Literal["github"]
     account: str = Field(min_length=1, max_length=100)
     show: list[str] = Field(default_factory=list)
 

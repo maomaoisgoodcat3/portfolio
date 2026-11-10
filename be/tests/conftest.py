@@ -2,36 +2,45 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
+from sqlalchemy.orm import Session, sessionmaker
 
-from app.db import Base, SessionLocal, engine
+from app.config import settings
+from app.db import Base
 from app.deps import get_db, require_admin
 from app.main import app
-from app.models import Block, BlockItem
+
+test_db_url = make_url(settings.get_database_url()).set(database="portfolio_test")
+if not test_db_url.database or not test_db_url.database.endswith("_test"):
+    raise RuntimeError(f"Test database name must end with '_test', got: {test_db_url.database}")
+
+test_engine = create_engine(test_db_url)
+test_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database() -> None:
     # Ensure tables exist in Postgres
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=test_engine)
 
 
 @pytest.fixture(autouse=True)
 def clean_database() -> Generator[None, None, None]:
-    with SessionLocal() as db:
-        db.query(BlockItem).delete()
-        db.query(Block).delete()
+    with test_sessionmaker() as db:
+        for table in reversed(Base.metadata.sorted_tables):
+            db.execute(text(f'TRUNCATE TABLE "{table.name}" RESTART IDENTITY CASCADE;'))
         db.commit()
     yield
-    with SessionLocal() as db:
-        db.query(BlockItem).delete()
-        db.query(Block).delete()
+    with test_sessionmaker() as db:
+        for table in reversed(Base.metadata.sorted_tables):
+            db.execute(text(f'TRUNCATE TABLE "{table.name}" RESTART IDENTITY CASCADE;'))
         db.commit()
 
 
 @pytest.fixture
 def db_session() -> Generator[Session, None, None]:
-    db = SessionLocal()
+    db = test_sessionmaker()
     try:
         yield db
     finally:

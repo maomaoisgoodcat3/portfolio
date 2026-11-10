@@ -234,6 +234,20 @@ def test_admin_stats_item_invalid_provider_returns_422(
     )
     assert res_missing_account.status_code == 422
 
+    # Without provider
+    res_no_provider = admin_client.post(
+        f"/api/admin/blocks/{block_id}/items",
+        json={"data": {"account": "octocat"}},
+    )
+    assert res_no_provider.status_code == 422
+
+    # With extra key
+    res_extra_key = admin_client.post(
+        f"/api/admin/blocks/{block_id}/items",
+        json={"data": {"provider": "github", "account": "octocat", "extra_key": "bad"}},
+    )
+    assert res_extra_key.status_code == 422
+
 
 def test_admin_stats_item_patch_validation(admin_client: TestClient) -> None:
     b = admin_client.post("/api/admin/blocks", json={"type": "stats", "title": "Stats"}).json()

@@ -228,12 +228,15 @@ def create_block_item(
     # Validate stats item data
     if block.type == "stats":
         try:
-            TypeAdapter(StatsItemData).validate_python(payload.data)
+            validated_data = TypeAdapter(StatsItemData).validate_python(payload.data).model_dump()
         except ValidationError as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Invalid stats item data: {exc}",
             ) from exc
+        item_data = validated_data
+    else:
+        item_data = payload.data
 
     # Position: max(position) + 1 within block_id if not provided
     if payload.position is None:
@@ -249,7 +252,7 @@ def create_block_item(
     item = BlockItem(
         block_id=block_id,
         visibility=payload.visibility,
-        data=payload.data,
+        data=item_data,
         position=position,
     )
     db.add(item)
@@ -276,13 +279,15 @@ def patch_block_item(
         block = db.get(Block, item.block_id)
         if block and block.type == "stats":
             try:
-                TypeAdapter(StatsItemData).validate_python(payload.data)
+                validated_data = TypeAdapter(StatsItemData).validate_python(payload.data).model_dump()
             except ValidationError as exc:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail=f"Invalid stats item data: {exc}",
                 ) from exc
-        item.data = payload.data
+            item.data = validated_data
+        else:
+            item.data = payload.data
 
     if payload.visibility is not None:
         item.visibility = payload.visibility
