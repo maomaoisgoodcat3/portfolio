@@ -29,6 +29,9 @@
   UPPER_CASE for constants.
 - Tests use pytest, run from `be/`. Files are named `test_<module>.py`;
   one behaviour per test.
+  - Run `ruff check be` before `pytest`; ruff catches missing imports and undefined names first.
+- Tests use only the portfolio_test database (see conftest.py); never point tests at portfolio_dev.
+- Helpers in sessions.py and rate_limit.py flush but never commit; routers commit once per request. Tests pass `now` explicitly.
 
 ## TypeScript (fe/)
 - Filled in when the frontend starts. Strict mode on.
@@ -57,11 +60,19 @@
 - At most three files per agent turn.
 
 ## Database
-- Table names are plural snake_case; primary keys are uuid generated in Python.
-- Every table has created_at and updated_at (timestamptz, default now()).
-- Every schema change is an Alembic migration that also downgrades; never edit a migration that has been applied.
-- Run migrations inside the api container: docker compose exec api alembic upgrade head.
+- Table names are plural snake_case; primary keys are uuid generated in Python, except rate_limits (text key).
+- Content tables have created_at and updated_at (timestamptz, default now()); state and log tables (sessions, recovery_codes, login_events, rate_limits) keep only the timestamps they need.
+- Every schema change is an Alembic migration that also downgrades. After the first deploy, never edit an applied migration; before it, editing is allowed only with downgrade and upgrade on every database that ran it.- Run migrations inside the api container: docker compose exec api alembic upgrade head.
 
 ## API
 - Public routes under /api/public/*, admin routes under /api/admin/* and always behind require_admin.
 - Errors use HTTPException with a short detail; never return stack traces or SQL.
+
+## Auth
+- Every /api/admin route depends on require_admin. No exceptions; a test walks app.routes to enforce it.
+- POST, PUT, PATCH and DELETE on admin routes need the X-CSRF-Token header.
+- Login errors are always the same generic message.
+- The session cookie is always set with the same attributes: __Host-session, HttpOnly, Secure, SameSite=Strict, Path=/, no Domain.
+- Never log passwords, TOTP codes, recovery codes, tokens or secrets.
+- Auth tests use TestClient(app, base_url="https://testserver").
+- New secrets go in be/.env with a placeholder in be/.env.example; agents never read be/.env.

@@ -22,6 +22,7 @@ test_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=test_en
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database() -> None:
     # Ensure tables exist in Postgres
+    Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
 
 

@@ -36,8 +36,8 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-09 - Switching tools mid-task: commit WIP on the task branch, write a handoff note (Done, In progress, Next step, Last test run, Do not touch, Open questions), then open the new tool with the standard handoff prompt - because tools do not share memory; only the repo carries context.
 - 2026-11-09 - Never run /init in OpenCode or Copilot - because it would rewrite AGENTS.md or add a second instruction file.
 - 2026-11-09 - Local models (Ollama, qwen2.5-coder 3B, 4k context) are used only through `ollama run` for small single tasks: regex, docstrings, commit messages, explaining under 80 lines - because the machine has little free RAM and OpenCode's prompt does not fit in 4k tokens.
-- 2026-11-09 - OpenCode + Ollama: <not set up / tried, result: ...>.
-- 2026-11-09 - OpenCode uses a Flash-Lite model (<exact model id>) by default (set in the global ~/.config/opencode/opencode.json, not in the repo) and switches to gemini-3.8-flash only for hard steps - because the free Gemini API tier allows 20 requests per day for 3.8 Flash and 3.6 Flash (checked in AI Studio on 2026-11-09) and <RPD> for Flash-Lite, and each agent loop is one request.
+- 2026-11-09 - OpenCode + Ollama: not set up - because Flash-Lite through the API was enough for small fixes.
+- 2026-11-09 - OpenCode uses a Flash-Lite model (<exact model id>) by default (set in the global ~/.config/opencode/opencode.json, not in the repo) and switches to gemini-3.8-flash only for hard steps - because the free Gemini API tier allows 20 requests per day for 3.8 Flash and 3.6 Flash (checked in AI Studio on 2026-11-09) and 500 for Flash-Lite, and each agent loop is one request.
 - 2026-11-09 - Work is routed by size: tab completion (Copilot) for line-level code, Ollama for small single tasks, OpenCode for small fixes, Antigravity for multi-file tasks with a plan - because the Antigravity weekly limit must last until the deploy on 2026-11-12.
 - 2026-11-09 - Prompts state which files the agent may read ("Read only ... Ask before opening any other file.") - because unscoped prompts made the agent read about ten files for a two-file task.
 
@@ -74,3 +74,28 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-10 - be/.env points host tools to 127.0.0.1:5433 (Docker Postgres); docker-compose.yml overrides POSTGRES_HOST=db and POSTGRES_PORT=5432 for the api container - because pytest was silently using the native Windows Postgres on 5432.
 - 2026-11-10 - A block's type cannot change after creation, and stats items are stored as validated, normalized data - because stored items must always match their block type.
 - 2026-11-10 - __pycache__ and *.pyc are ignored by git - because build/cache artifacts should not be tracked.
+
+
+## Auth (2026-11-10)
+- 2026-11-10 - Admin login: argon2id passwords, mandatory TOTP with 10 single-use recovery codes, server-side sessions in Postgres storing only a SHA-256 hash of the token, cookie __Host-session (HttpOnly, Secure, SameSite=Strict), synchronizer CSRF token in X-CSRF-Token, 429 after 5 failures in 15 minutes per email or IP - because there is one admin, no Redis, and the admin area must not be guessable or replayable.
+- 2026-11-10 - The session token is replaced after the TOTP step - because the token issued before the second factor must not become a full session.
+- 2026-11-10 - A TOTP code cannot be used twice: admin_users.totp_last_step stores the last accepted step, and the admin row is locked while checking - because a code someone has seen must not log in again.
+- 2026-11-10 - TOTP secrets are encrypted with Fernet using TOTP_ENC_KEY from the environment, with a different key in production; settings errors never echo input values - because a database or log leak alone must not reveal the second factor.
+- 2026-11-10 - The admin account is created only by the CLI, which requires a working TOTP code before saving - because a mistyped setup key would lock the admin out.
+- 2026-11-10 - Login lockout is keyed by email as well as IP, so anyone can lock the admin out for 15 minutes; recovery is waiting or deleting the rate_limits row - because blocking password guessing matters more than this small denial-of-service risk.
+- 2026-11-10 - Known limitation: a burst of parallel first attempts can exceed 5 tries; replace with an atomic upsert after deploy - because the risk is low for a single-admin site and the deadline is 12/11.
+- 2026-11-10 - Login IP comes from request.client.host for now; T-10 must read the real client IP from the Vercel proxy header - because behind the proxy every visitor shares one IP.
+- 2026-11-10 - Migrations may be edited in place only before the first deploy, followed by downgrade and upgrade on every database that ran them - because after deploy only new migrations are safe.
+
+
+## Tools and workflow (2026-11-10)
+- 2026-11-10 - Antigravity ran out of both weekly limits (Gemini refreshes 2026-11-15, Claude/GPT 2026-11-17); until then multi-file work goes to GitHub Copilot Student (Agent mode, Copilot Fusion, 200 AI credits per month) and small fixes to OpenCode with Flash-Lite - because no Antigravity quota remains before the deploy. Replaces the 2026-11-09 routing line for this period.
+- 2026-11-10 - Copilot Student had to be redeemed separately after the GitHub Education verification; the Copilot additional usage budget stays at $0 - because extra spending must never start without my approval, like AI Credit Overages.
+- 2026-11-10 - In Copilot, open C:\dev\portfolio itself as the VS Code folder, never C:\dev - because Copilot loads AGENTS.md only from the workspace root.
+- 2026-11-10 - Library pins are checked with `python -m pip index versions <pkg>` before installing (argon2-cffi 25.1.0, pyotp 2.10.0, cryptography 50.0.2) - because agents pinned outdated versions from memory.
+- 2026-11-10 - Any change in be/ needs `docker compose up -d --build`; `--force-recreate` is only for .env or compose changes - because the code is copied into the image.
+- 2026-11-10 - be/ruff.toml sets known-first-party = ["app"] and known-third-party = ["alembic"] - because ruff run from be/ and from the repo root sorted imports differently and kept undoing each other.
+- 2026-11-10 - The shell is Windows PowerShell 5.1: no `&&`, use `curl.exe`, never pass nested double quotes to native programs; Postgres is inspected with interactive psql inside the db container - because PowerShell 5.1 strips embedded double quotes.
+- 2026-11-10 - Diffs for review are written with `git diff main...HEAD --output=review.diff` (not `>`), reviewed, then deleted - because PowerShell 5.1 redirection writes UTF-16 and a stale diff could be reviewed by mistake.
+- 2026-11-10 - Shared test logs use `pytest -q --tb=short` - because long tracebacks printed the database connection string with its password.
+- 2026-11-10 - The default branch is main (renamed from master) - because every doc, skill and convention says main.
