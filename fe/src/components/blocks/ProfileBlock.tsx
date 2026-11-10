@@ -12,12 +12,12 @@ export function ProfileBlock({ block, variant = "main" }: Props) {
   const avatarHref = avatar?.startsWith("https:") ? avatar : null;
 
   return (
-    <section className={`pixel-box bg-surface text-text ${variant === "sidebar" ? "p-4 text-center" : "p-6"}`}>
-      <h2 className="font-pixel text-xl text-accent">{block.title}</h2>
-      <div className={`mt-3 flex gap-5 ${variant === "sidebar" ? "flex-col items-center" : "flex-wrap items-center"}`}>
+    <section className={`pixel-box h-full bg-surface text-text ${variant === "sidebar" ? "flex flex-col items-center justify-center p-4 text-center" : "p-6"}`}>
+      {variant !== "sidebar" && <h2 className="font-pixel text-xl text-accent">{block.title}</h2>}
+      <div className={`mt-3 flex gap-5 ${variant === "sidebar" ? "flex-col items-center justify-center" : "flex-wrap items-center"}`}>
         {avatarHref && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarHref} alt={name ?? ""} width={96} height={96} referrerPolicy="no-referrer" loading="lazy" className="border-2 border-accent object-cover" />
+          <img src={avatarHref} alt={name ?? ""} width={96} height={96} referrerPolicy="no-referrer" loading="lazy" className={`border-2 border-accent object-cover ${variant === "sidebar" ? "h-24 w-24 lg:h-32 lg:w-32" : "h-24 w-24"}`} />
         )}
         <div className={variant === "sidebar" ? "text-center" : undefined}>
           {name && <h1 className="font-pixel text-4xl tracking-tight">{name}</h1>}

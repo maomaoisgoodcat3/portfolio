@@ -50,11 +50,17 @@ button:disabled {
 .pixel-box {
   border: 3px solid currentColor;
   box-shadow: 4px 4px 0 0 currentColor;
+  overflow-wrap: anywhere;
 }
 
 .pixel-button {
   border: 3px solid currentColor;
   box-shadow: 4px 4px 0 0 currentColor;
+  overflow-wrap: anywhere;
+}
+
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
 }
 
 .pixel-button:active:not(:disabled) {
@@ -70,6 +76,34 @@ textarea:focus-visible,
 a:focus-visible {
   outline: 3px solid #ffcd75;
   outline-offset: 3px;
+}
+
+.pixel-scroll {
+  scrollbar-gutter: stable;
+}
+
+.pixel-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pixel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pixel-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--color-accent);
+}
+
+.pixel-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .pixel-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-accent) transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -71,15 +71,23 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-bg">
       <aside className="w-full bg-bg lg:fixed lg:inset-y-0 lg:top-0 lg:left-0 lg:z-20 lg:flex lg:h-screen lg:w-1/4 lg:flex-col">
-        <div className="lg:h-1/2 lg:overflow-y-auto">
+        <div className="lg:grid lg:h-screen lg:grid-rows-2 lg:gap-3 lg:p-4">
+          <div className="min-h-0">
           {profile && renderBlock(profile, "sidebar")}
-        </div>
-        <div className="lg:h-1/2 lg:overflow-y-auto">
-          {links.map((block) => renderBlock(block, "sidebar"))}
-          {contacts.map((block) => renderBlock(block, "sidebar"))}
+          </div>
+          <div className="pixel-box min-h-0 bg-surface p-2 text-text lg:p-3">
+            <div className="pixel-scroll min-h-0 overflow-visible overflow-x-hidden lg:h-full lg:overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                {links.map((block) => renderBlock(block, "sidebar"))}
+              </div>
+              <div className="mt-2 space-y-2">
+                {contacts.map((block) => renderBlock(block, "sidebar"))}
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
-      <main className="w-full px-6 py-12 sm:px-8 lg:ml-[25%] lg:w-[75%]">
+      <main className="w-full overflow-wrap-anywhere px-4 py-4 sm:px-8 sm:py-12 lg:ml-[25%] lg:w-[75%]">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
           {error && <p className="pixel-box border-danger bg-surface p-4 text-danger">{error}</p>}
           {!error && blocks === null && <p className="text-muted">Loading portfolio...</p>}

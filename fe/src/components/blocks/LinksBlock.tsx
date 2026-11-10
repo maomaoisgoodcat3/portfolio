@@ -9,9 +9,9 @@ export function LinksBlock({ block, variant = "main" }: Props) {
   if (!href) return null;
 
   return (
-    <section className={`pixel-box bg-surface text-text ${variant === "sidebar" ? "p-4" : "p-6"}`}>
-      <h2 className="font-pixel text-2xl text-accent">{block.title}</h2>
-      <a className={variant === "sidebar" ? "pixel-button mt-3 block w-full border-accent px-3 py-2 text-accent" : "mt-3 inline-block text-accent underline"} href={href}>
+    <section className={variant === "sidebar" ? "min-w-0" : "pixel-box bg-surface p-6 text-text"}>
+      {variant !== "sidebar" && <h2 className="font-pixel text-2xl text-accent">{block.title}</h2>}
+      <a className={variant === "sidebar" ? "pixel-button block min-h-11 w-full min-w-0 overflow-wrap-anywhere border-accent px-3 py-2 text-center text-accent" : "mt-3 inline-block text-accent underline"} href={href}>
         {block.title}
       </a>
     </section>
