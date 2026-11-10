@@ -1,12 +1,13 @@
 from collections.abc import Generator
 
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
 from app.db import Base, SessionLocal, engine
 from app.deps import get_db, require_admin
 from app.main import app
 from app.models import Block, BlockItem
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -1,6 +1,11 @@
 from typing import Annotated
 from uuid import UUID
 
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+from pydantic import TypeAdapter, ValidationError
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
 from app.deps import get_db, require_admin
 from app.models import Block, BlockItem
 from app.schemas import (
@@ -12,10 +17,6 @@ from app.schemas import (
     BlockUpdate,
     StatsItemData,
 )
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-from pydantic import TypeAdapter, ValidationError
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
 router = APIRouter(
     prefix="/api/admin",

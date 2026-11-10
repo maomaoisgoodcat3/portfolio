@@ -1,6 +1,7 @@
-from app.models import Block, BlockItem
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
+from app.models import Block, BlockItem
 
 
 def test_get_public_blocks_empty(client: TestClient) -> None:

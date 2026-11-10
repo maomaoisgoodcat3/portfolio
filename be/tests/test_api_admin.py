@@ -1,9 +1,10 @@
 import re
 import uuid
 
-from app.main import app
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
+
+from app.main import app
 
 
 def test_all_admin_routes_return_401_without_override(client: TestClient) -> None:
