@@ -77,6 +77,10 @@ export function SchemaForm({ fields, initialValue, submitLabel, onSubmit, childr
       const next = { ...initialValue };
       for (const field of fields) {
         const raw = values[field.key] ?? "";
+        if (field.required && !raw.trim()) {
+          setError(`${field.label} is required`);
+          return;
+        }
         if (field.kind === "select") {
           next[field.key] = raw || field.options?.[0] || "";
           continue;
@@ -126,6 +130,7 @@ export function SchemaForm({ fields, initialValue, submitLabel, onSubmit, childr
             <input
               className="mt-1 w-full border-2 border-muted bg-bg p-2 text-text"
               type={field.kind === "url" || field.kind === "https_url" ? "url" : "text"}
+              required={field.required}
               value={values[field.key] ?? ""}
               onChange={(event) => updateField(field.key, event.target.value)}
             />

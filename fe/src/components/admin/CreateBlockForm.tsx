@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { blockTypes, getBlockSchema, schemaTemplate } from "@/lib/block-schemas";
 import { SchemaForm } from "./SchemaForm";
 
 type Props = {
+  existingTypes: readonly string[];
   onCreate: (payload: {
     type: (typeof blockTypes)[number];
     title: string;
@@ -15,11 +16,23 @@ type Props = {
 
 export { blockTypes };
 
-export function CreateBlockForm({ onCreate }: Props) {
+export function CreateBlockForm({ existingTypes, onCreate }: Props) {
+  const visibleBlockTypes = useMemo(
+    () => blockTypes.filter((option) => option !== "profile" || !existingTypes.includes(option)),
+    [existingTypes],
+  );
   const [type, setType] = useState<(typeof blockTypes)[number]>("profile");
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState("admin");
   const [props, setProps] = useState<Record<string, unknown>>(schemaTemplate(getBlockSchema("profile").props));
+
+  useEffect(() => {
+    if (visibleBlockTypes.includes(type)) return;
+    const nextType = visibleBlockTypes[0];
+    if (!nextType) return;
+    setType(nextType);
+    setProps(schemaTemplate(getBlockSchema(nextType).props));
+  }, [type, visibleBlockTypes]);
 
   function changeType(nextType: (typeof blockTypes)[number]) {
     setType(nextType);
@@ -33,7 +46,7 @@ export function CreateBlockForm({ onCreate }: Props) {
         <label className="block text-sm text-muted">
           Type
           <select className="mt-1 w-full border-2 border-muted bg-bg p-2 text-text" value={type} onChange={(event) => changeType(event.target.value as (typeof blockTypes)[number])}>
-            {blockTypes.map((option) => <option key={option} value={option}>{option}</option>)}
+            {visibleBlockTypes.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
       </div>

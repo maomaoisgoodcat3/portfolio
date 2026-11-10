@@ -60,7 +60,7 @@ def test_admin_create_second_profile_returns_409(admin_client: TestClient) -> No
     assert second.json() == {"detail": "Only one profile block is allowed"}
 
 
-def test_admin_create_second_links_returns_409(admin_client: TestClient) -> None:
+def test_admin_create_second_links_succeeds(admin_client: TestClient) -> None:
     first = admin_client.post(
         "/api/admin/blocks",
         json={"type": "links", "title": "Links"},
@@ -71,8 +71,21 @@ def test_admin_create_second_links_returns_409(admin_client: TestClient) -> None
         "/api/admin/blocks",
         json={"type": "links", "title": "More links"},
     )
-    assert second.status_code == 409
-    assert second.json() == {"detail": "Only one links block is allowed"}
+    assert second.status_code == 201
+
+
+def test_admin_create_second_contact_succeeds(admin_client: TestClient) -> None:
+    first = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "contact", "title": "Contact"},
+    )
+    assert first.status_code == 201
+
+    second = admin_client.post(
+        "/api/admin/blocks",
+        json={"type": "contact", "title": "More contact"},
+    )
+    assert second.status_code == 201
 
 
 def test_admin_create_two_projects_blocks_allowed(admin_client: TestClient) -> None:

@@ -69,7 +69,7 @@ def create_block(
     payload: BlockCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> BlockResponse:
-    if payload.type in {"profile", "links", "contact"}:
+    if payload.type == "profile":
         if db.scalar(select(Block.id).where(Block.type == payload.type)) is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -91,7 +91,7 @@ def create_block(
         db.commit()
     except IntegrityError:
         db.rollback()
-        if payload.type in {"profile", "links", "contact"}:
+        if payload.type == "profile":
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Only one {payload.type} block is allowed",

@@ -187,8 +187,8 @@ export default function AdminPage() {
         <button className="pixel-button border-danger px-3 py-2 text-danger" onClick={() => void logout()}>Log out</button>
       </header>
       <p className="pixel-box border-muted bg-surface px-3 py-2 text-sm text-muted" role="status">{status}</p>
-      <CreateBlockForm onCreate={createBlock} />
-      <BlockList blocks={blocks} onUpdate={updateBlock} onDelete={deleteBlock} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} onMove={moveBlock} />
+      <CreateBlockForm existingTypes={blocks.map((block) => block.type)} onCreate={createBlock} />
+      <BlockList blocks={blocks} onUpdate={updateBlock} onDelete={deleteBlock} onMove={moveBlock} />
       <button className="pixel-button border-muted px-3 py-2 text-sm text-muted" onClick={() => void loadBlocks()}>Refresh blocks</button>
     </main>
   );

@@ -4,12 +4,12 @@ import { str } from "@/lib/fields";
 type Props = { block: Block };
 
 export function AboutBlock({ block }: Props) {
-  const text = str(block.props, "text");
+  const content = str(block.props, "content");
 
   return (
-    <section className="pixel-box bg-surface p-6 text-text">
-      <h2 className="font-pixel text-2xl text-accent">{block.title}</h2>
-      {text && <p className="mt-3 whitespace-pre-wrap leading-7">{text}</p>}
-    </section>
+    <article className="pixel-box bg-surface p-4 text-text">
+      <h3 className="font-pixel text-xl text-accent">{block.title}</h3>
+      {content && <p className="mt-2 whitespace-pre-line leading-7">{content}</p>}
+    </article>
   );
 }

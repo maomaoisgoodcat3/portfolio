@@ -4,6 +4,7 @@ export type SchemaField = {
   key: string;
   label: string;
   kind: FieldKind;
+  required?: boolean;
   options?: string[];
 };
 
@@ -31,52 +32,57 @@ const profileProps: SchemaField[] = [
   { key: "avatar_url", label: "Avatar URL", kind: "https_url" },
 ];
 
-const entryItems: SchemaField[] = [
-  { key: "title", label: "Title", kind: "text" },
-  { key: "subtitle", label: "Subtitle", kind: "text" },
-  { key: "period", label: "Period", kind: "text" },
-  { key: "description", label: "Description", kind: "textarea" },
-  { key: "url", label: "URL", kind: "url" },
-  { key: "tags", label: "Tags", kind: "tags" },
-];
-
 export const blockSchemas: Record<string, BlockSchema> = {
   profile: { props: profileProps, items: [] },
   about: {
-    props: [{ key: "text", label: "Text", kind: "textarea" }],
+    props: [{ key: "content", label: "Content", kind: "textarea" }],
     items: [],
   },
   skills: {
-    props: [],
-    items: [
-      { key: "name", label: "Name", kind: "text" },
-      { key: "level", label: "Level", kind: "text" },
-    ],
+    props: [{ key: "tags", label: "Tags", kind: "tags" }],
+    items: [],
   },
-  experience: { props: [], items: entryItems },
-  projects: { props: [], items: entryItems },
-  research: { props: [], items: entryItems },
-  links: {
-    props: [],
-    items: [
-      { key: "label", label: "Label", kind: "text" },
+  experience: {
+    props: [
+      { key: "subtitle", label: "Subtitle", kind: "text" },
+      { key: "period", label: "Period", kind: "text" },
+      { key: "content", label: "Content", kind: "textarea" },
       { key: "url", label: "URL", kind: "url" },
     ],
+    items: [],
+  },
+  projects: {
+    props: [
+      { key: "period", label: "Period", kind: "text" },
+      { key: "content", label: "Content", kind: "textarea" },
+      { key: "url", label: "URL", kind: "url" },
+      { key: "tags", label: "Tags", kind: "tags" },
+    ],
+    items: [],
+  },
+  research: {
+    props: [
+      { key: "subtitle", label: "Subtitle", kind: "text" },
+      { key: "period", label: "Period", kind: "text" },
+      { key: "content", label: "Content", kind: "textarea" },
+      { key: "url", label: "URL", kind: "url" },
+    ],
+    items: [],
+  },
+  links: {
+    props: [{ key: "url", label: "URL", kind: "url", required: true }],
+    items: [],
   },
   stats: {
-    props: [],
-    items: [
+    props: [
       { key: "provider", label: "Provider", kind: "select", options: ["github"] },
       { key: "account", label: "Account", kind: "text" },
-      { key: "show", label: "Show", kind: "tags" },
     ],
+    items: [],
   },
   contact: {
-    props: [{ key: "text", label: "Text", kind: "textarea" }],
-    items: [
-      { key: "label", label: "Label", kind: "text" },
-      { key: "url", label: "URL", kind: "url" },
-    ],
+    props: [{ key: "content", label: "Content", kind: "textarea" }],
+    items: [],
   },
 };
 

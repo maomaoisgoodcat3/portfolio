@@ -6,13 +6,10 @@ type Props = {
   blocks: Block[];
   onUpdate: ComponentProps<typeof BlockEditor>["onUpdate"];
   onDelete: (id: string) => Promise<void>;
-  onAddItem: ComponentProps<typeof BlockEditor>["onAddItem"];
-  onUpdateItem: ComponentProps<typeof BlockEditor>["onUpdateItem"];
-  onDeleteItem: ComponentProps<typeof BlockEditor>["onDeleteItem"];
   onMove: (id: string, direction: -1 | 1) => Promise<void>;
 };
 
-export function BlockList({ blocks, onUpdate, onDelete, onAddItem, onUpdateItem, onDeleteItem, onMove }: Props) {
+export function BlockList({ blocks, onUpdate, onDelete, onMove }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
@@ -30,7 +27,7 @@ export function BlockList({ blocks, onUpdate, onDelete, onAddItem, onUpdateItem,
             <button type="button" className="pixel-button border-danger px-2 py-1 text-danger" onClick={() => window.confirm("Delete this block?") && void onDelete(block.id)}>Delete</button>
           </header>
           <div className="mt-4">
-            <BlockEditor block={block} editing={editingId === block.id} onEdit={() => setEditingId(null)} onUpdate={onUpdate} onAddItem={onAddItem} onUpdateItem={onUpdateItem} onDeleteItem={onDeleteItem} />
+            <BlockEditor block={block} editing={editingId === block.id} onEdit={() => setEditingId(null)} onUpdate={onUpdate} />
           </div>
         </article>
       ))}

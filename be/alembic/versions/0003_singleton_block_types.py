@@ -27,7 +27,7 @@ def upgrade() -> None:
         "blocks",
         ["type"],
         unique=True,
-        postgresql_where=sa.text("type IN ('profile', 'links', 'contact')"),
+        postgresql_where=sa.text("type = 'profile'"),
     )
 
 

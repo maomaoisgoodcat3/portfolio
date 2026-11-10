@@ -34,7 +34,7 @@ class Block(Base):
             "uq_blocks_singleton_type",
             "type",
             unique=True,
-            postgresql_where=text("type IN ('profile', 'links', 'contact')"),
+            postgresql_where=text("type = 'profile'"),
         ),
     )
 
