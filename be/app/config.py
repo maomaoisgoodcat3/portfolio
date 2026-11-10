@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     app_name: str = "Portfolio API"
     app_env: str = "development"
 
+    totp_enc_key: str = Field(validation_alias="TOTP_ENC_KEY")
+
     raw_database_url: str | None = Field(default=None, validation_alias="DATABASE_URL")
 
     postgres_user: str
