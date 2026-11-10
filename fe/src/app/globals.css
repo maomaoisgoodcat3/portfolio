@@ -1,15 +1,84 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-bg: #1a1c2c;
+  --color-surface: #333c57;
+  --color-text: #f4f4f4;
+  --color-muted: #94b0c2;
+  --color-accent: #41a6f6;
+  --color-ok: #38b764;
+  --color-warn: #ffcd75;
+  --color-danger: #b13e53;
+  --font-pixel: var(--font-pixelify);
+  --font-mono: var(--font-geist-mono);
+}
+
 :root {
-  background: #f8fafc;
-  color: #0f172a;
+  color-scheme: dark;
 }
 
 body {
+  min-width: 320px;
   margin: 0;
-  background: #f8fafc;
+  background: #1a1c2c;
+  color: #f4f4f4;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 16px;
 }
 
 a {
   text-underline-offset: 3px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pixel-box {
+  border: 3px solid currentColor;
+  box-shadow: 4px 4px 0 0 currentColor;
+}
+
+.pixel-button {
+  border: 3px solid currentColor;
+  box-shadow: 4px 4px 0 0 currentColor;
+}
+
+.pixel-button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 currentColor;
+}
+
+.pixel-button:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid #ffcd75;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

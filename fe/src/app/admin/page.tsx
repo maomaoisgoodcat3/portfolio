@@ -16,7 +16,7 @@ export default function AdminPage() {
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("Loading...");
 
   const redirectToLogin = useCallback(() => router.replace("/admin/login"), [router]);
 
@@ -30,7 +30,7 @@ export default function AdminPage() {
       if (caught instanceof ApiError && caught.status === 401) {
         redirectToLogin();
       } else {
-        setError("Unable to load the admin session.");
+        setStatus("Unable to load the admin session.");
       }
       return null;
     }
@@ -40,9 +40,9 @@ export default function AdminPage() {
     if (caught instanceof ApiError && caught.status === 401) {
       redirectToLogin();
     } else if (caught instanceof ApiError && (caught.status === 404 || caught.status === 422)) {
-      setError(caught.detail);
+      setStatus(caught.detail);
     } else {
-      setError("Unable to complete that action.");
+      setStatus("Unable to complete that action.");
     }
   }, [redirectToLogin]);
 
@@ -70,6 +70,7 @@ export default function AdminPage() {
     try {
       const result = await apiGet<Block[]>("/api/admin/blocks");
       setBlocks(result ?? []);
+      setStatus("Saved");
     } catch (caught) {
       showError(caught);
     }
@@ -82,7 +83,10 @@ export default function AdminPage() {
       if (me && active) {
         try {
           const result = await apiGet<Block[]>("/api/admin/blocks");
-          if (active) setBlocks(result ?? []);
+          if (active) {
+            setBlocks(result ?? []);
+            setStatus("Saved");
+          }
         } catch (caught) {
           if (active) showError(caught);
         } finally {
@@ -99,12 +103,16 @@ export default function AdminPage() {
     const result = await write((token) => apiSend<Block>("POST", "/api/admin/blocks", payload, token));
     if (!result) return false;
     setBlocks((current) => [...current, result]);
+    setStatus("Saved");
     return true;
   }
 
   async function updateBlock(id: string, payload: BlockPayload) {
     const result = await write((token) => apiSend<Block>("PATCH", `/api/admin/blocks/${id}`, payload, token));
-    if (result) setBlocks((current) => current.map((block) => block.id === id ? result : block));
+    if (result) {
+      setBlocks((current) => current.map((block) => block.id === id ? result : block));
+      setStatus("Saved");
+    }
   }
 
   async function deleteBlock(id: string) {
@@ -114,7 +122,10 @@ export default function AdminPage() {
       succeeded = true;
       return result;
     });
-    if (succeeded) setBlocks((current) => current.filter((block) => block.id !== id));
+    if (succeeded) {
+      setBlocks((current) => current.filter((block) => block.id !== id));
+      setStatus("Deleted");
+    }
   }
 
   async function moveBlock(id: string, direction: -1 | 1) {
@@ -124,19 +135,26 @@ export default function AdminPage() {
     const ids = blocks.map((block) => block.id);
     [ids[index], ids[target]] = [ids[target], ids[index]];
     const result = await write((token) => apiSend<Block[]>("PUT", "/api/admin/blocks/order", ids, token));
-    if (result) setBlocks(result);
+    if (result) {
+      setBlocks(result);
+      setStatus("Saved");
+    }
   }
 
   async function addItem(blockId: string, payload: { data: Record<string, unknown>; visibility: string }) {
     const result = await write((token) => apiSend<BlockItem>("POST", `/api/admin/blocks/${blockId}/items`, payload, token));
     if (!result) return false;
     setBlocks((current) => current.map((block) => block.id === blockId ? { ...block, items: [...block.items, result] } : block));
+    setStatus("Saved");
     return true;
   }
 
   async function updateItem(id: string, payload: ItemPayload) {
     const result = await write((token) => apiSend<BlockItem>("PATCH", `/api/admin/items/${id}`, payload, token));
-    if (result) setBlocks((current) => current.map((block) => ({ ...block, items: block.items.map((item) => item.id === id ? result : item) })));
+    if (result) {
+      setBlocks((current) => current.map((block) => ({ ...block, items: block.items.map((item) => item.id === id ? result : item) })));
+      setStatus("Saved");
+    }
   }
 
   async function deleteItem(id: string) {
@@ -146,29 +164,32 @@ export default function AdminPage() {
       succeeded = true;
       return result;
     });
-    if (succeeded) setBlocks((current) => current.map((block) => ({ ...block, items: block.items.filter((item) => item.id !== id) })));
+    if (succeeded) {
+      setBlocks((current) => current.map((block) => ({ ...block, items: block.items.filter((item) => item.id !== id) })));
+      setStatus("Deleted");
+    }
   }
 
   async function logout() {
     await write((token) => apiSend<undefined>("POST", "/api/auth/logout", undefined, token));
     setCsrfToken(null);
     setBlocks([]);
-    setError(null);
+    setStatus("");
     router.replace("/admin/login");
   }
 
-  if (loading) return <main className="mx-auto max-w-5xl px-6 py-12 text-slate-500">Loading admin...</main>;
+  if (loading) return <main className="mx-auto max-w-5xl px-6 py-12 text-muted">Loading admin...</main>;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 px-6 py-12">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-slate-950">Admin</h1>
-        <button className="rounded border border-slate-300 px-3 py-2" onClick={() => void logout()}>Log out</button>
+        <h1 className="font-pixel text-3xl text-accent">Admin</h1>
+        <button className="pixel-button border-danger px-3 py-2 text-danger" onClick={() => void logout()}>Log out</button>
       </header>
-      {error && <p className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
+      <p className="pixel-box border-muted bg-surface px-3 py-2 text-sm text-muted" role="status">{status}</p>
       <CreateBlockForm onCreate={createBlock} />
       <BlockList blocks={blocks} onUpdate={updateBlock} onDelete={deleteBlock} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} onMove={moveBlock} />
-      <button className="text-sm text-slate-500 underline" onClick={() => void loadBlocks()}>Refresh blocks</button>
+      <button className="pixel-button border-muted px-3 py-2 text-sm text-muted" onClick={() => void loadBlocks()}>Refresh blocks</button>
     </main>
   );
 }

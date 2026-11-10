@@ -54,11 +54,11 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-12 px-6 py-12 sm:px-8">
-      {error && <p className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
-      {!error && blocks === null && <p className="text-slate-500">Loading portfolio...</p>}
-      {blocks && blocks.length > 0 && <div className="space-y-12">{blocks.map(renderBlock)}</div>}
-      {blocks && blocks.length === 0 && <p className="text-slate-500">No portfolio content yet.</p>}
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 px-6 py-12 sm:px-8">
+      {error && <p className="pixel-box border-danger bg-surface p-4 text-danger">{error}</p>}
+      {!error && blocks === null && <p className="text-muted">Loading portfolio...</p>}
+      {blocks && blocks.length > 0 && <div className="space-y-10">{blocks.map(renderBlock)}</div>}
+      {blocks && blocks.length === 0 && <p className="text-muted">No portfolio content yet.</p>}
     </main>
   );
 }

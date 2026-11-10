@@ -42,7 +42,7 @@
 - Before every commit, in fe/: npm run lint, npx tsc --noEmit, npm run build.
 
 ## Block content keys
-- profile props: name, headline, location. about props: text. contact props: text.
+- profile props: name, headline, location, avatar_url (https image URL). about props: text. contact props: text.
 - skills items: name, level. experience, projects, research items: title, subtitle, period, description, url, tags (string array).
 - links and contact items: label, url. stats items: provider, account, show.
 - Missing keys render nothing; unknown keys are ignored.

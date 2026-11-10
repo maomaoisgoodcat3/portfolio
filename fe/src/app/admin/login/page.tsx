@@ -62,14 +62,14 @@ export default function AdminLoginPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
-      <h1 className="text-3xl font-bold text-slate-950">Admin sign in</h1>
-      {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
+      <h1 className="font-pixel text-3xl text-accent">Admin sign in</h1>
+      {error && <p className="pixel-box mt-4 border-danger bg-surface p-3 text-danger">{error}</p>}
       {step === 1 ? (
         <form className="mt-6 space-y-4" onSubmit={submitPassword}>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm text-muted">
             Email
             <input
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full border-2 border-muted bg-surface p-2 text-text"
               type="email"
               autoComplete="username"
               value={email}
@@ -77,10 +77,10 @@ export default function AdminLoginPage() {
               required
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm text-muted">
             Password
             <input
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full border-2 border-muted bg-surface p-2 text-text"
               type="password"
               autoComplete="current-password"
               value={password}
@@ -88,16 +88,16 @@ export default function AdminLoginPage() {
               required
             />
           </label>
-          <button className="rounded bg-slate-900 px-4 py-2 text-white disabled:opacity-50" disabled={submitting}>
+          <button className="pixel-button border-accent bg-accent px-4 py-2 text-bg disabled:opacity-50" disabled={submitting}>
             Continue
           </button>
         </form>
       ) : (
         <form className="mt-6 space-y-4" onSubmit={submitCode}>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm text-muted">
             TOTP or recovery code
             <input
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full border-2 border-muted bg-surface p-2 text-text"
               type="text"
               autoComplete="one-time-code"
               value={code}
@@ -105,7 +105,7 @@ export default function AdminLoginPage() {
               required
             />
           </label>
-          <button className="rounded bg-slate-900 px-4 py-2 text-white disabled:opacity-50" disabled={submitting}>
+          <button className="pixel-button border-accent bg-accent px-4 py-2 text-bg disabled:opacity-50" disabled={submitting}>
             Verify
           </button>
         </form>

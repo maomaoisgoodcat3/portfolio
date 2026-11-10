@@ -9,16 +9,16 @@ export function StatsBlock({ block }: Props) {
     .filter((item): item is { id: string; account: string } => item.account !== null);
 
   return (
-    <section>
-      <h2 className="text-2xl font-semibold text-slate-950">{block.title}</h2>
+    <section className="pixel-box bg-surface p-6 text-text">
+      <h2 className="font-pixel text-2xl text-accent">{block.title}</h2>
       {accounts.length > 0 && (
-        <ul className="mt-4 list-disc space-y-1 pl-5 text-slate-700">
+        <ul className="mt-4 list-disc space-y-1 pl-5">
           {accounts.map(({ id, account }) => (
             <li key={id}>{account}</li>
           ))}
         </ul>
       )}
-      <p className="mt-4 text-slate-500">Stats coming soon</p>
+      <p className="mt-4 text-muted">Stats coming soon</p>
     </section>
   );
 }
