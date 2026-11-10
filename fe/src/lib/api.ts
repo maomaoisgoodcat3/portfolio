@@ -71,13 +71,25 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const detail =
-      typeof payload === "object" &&
-      payload !== null &&
-      "detail" in payload &&
-      typeof payload.detail === "string"
-        ? payload.detail
-        : "Request failed.";
+    let detail = "Request failed.";
+    if (typeof payload === "object" && payload !== null && "detail" in payload) {
+      const responseDetail = payload.detail;
+      if (typeof responseDetail === "string") {
+        detail = responseDetail;
+      } else if (Array.isArray(responseDetail)) {
+        const messages = responseDetail
+          .map((item) => {
+            if (typeof item !== "object" || item === null || !("msg" in item)) {
+              return null;
+            }
+            return typeof item.msg === "string" ? item.msg : null;
+          })
+          .filter((message): message is string => message !== null);
+        if (messages.length > 0) {
+          detail = messages.join("; ");
+        }
+      }
+    }
     throw new ApiError(response.status, detail);
   }
 
