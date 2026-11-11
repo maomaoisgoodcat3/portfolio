@@ -123,3 +123,12 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-11 - APP_ENV defaults to production and FastAPI docs, redoc and openapi.json are served only when APP_ENV=development - because a missing variable in production must fail closed.
 - 2026-11-11 - pip-audit is installed in the local portfolio env only, not in the api image; npm audit and pip-audit run by hand until CI exists (T-10).
 - 2026-11-11 - Playwright runs Chromium only, locally against the dev server, with no login in tests - because login needs a real password and TOTP, which must never be in the repo.
+
+## Deploy (2026-11-12)
+- 2026-11-12 - vercel.json defines services web (fe/) and api (be/, entrypoint app.main:app) with rewrites /api/(.*) -> api first and /(.*) -> web last; the project Framework Preset is Services - because rewrites match in order and a service gets public traffic only through a rewrite.
+- 2026-11-12 - Neon project in Singapore and Vercel function region sin1 - because the database and the function should sit together and close to Vietnam; the default iad1 is in the US.
+- 2026-11-12 - DATABASE_URL, when set, replaces POSTGRES_*; it is normalized to postgresql+psycopg and used with NullPool and prepare_threshold None - because Neon's pooler already pools connections and serverless instances should not hold their own.
+- 2026-11-12 - The client IP comes from the header named in CLIENT_IP_HEADER (x-forwarded-for on Vercel, which Vercel overwrites with the real client IP) and from request.client.host when the variable is empty - because only the platform proxy can be trusted to set that header. Replaces the 2026-11-10 known limitation about request.client.host.
+- 2026-11-12 - Production migrations and create-admin run from my machine over the Neon direct connection, with secrets typed into Read-Host - because the pooled connection is for the app, and secrets must not land in shell history.
+- 2026-11-12 - Production has its own admin password, TOTP entry, recovery codes and TOTP_ENC_KEY; content was re-entered through the production admin - because no local secret or data dump should move to production.
+- 2026-11-12 - Production secrets live only in Vercel environment variables (Production scope) and in my password manager.
