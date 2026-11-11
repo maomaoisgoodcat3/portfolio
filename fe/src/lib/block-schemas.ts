@@ -75,8 +75,13 @@ export const blockSchemas: Record<string, BlockSchema> = {
   },
   stats: {
     props: [
-      { key: "provider", label: "Provider", kind: "select", options: ["github"] },
-      { key: "account", label: "Account", kind: "text" },
+      { key: "provider", label: "Provider", kind: "select", options: ["github"], required: true },
+      { key: "account", label: "Account", kind: "text", required: true },
+      {
+        key: "show",
+        label: "Show (repos, stars, contributions, languages, active_hours)",
+        kind: "tags",
+      },
     ],
     items: [],
   },
