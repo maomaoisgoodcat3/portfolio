@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { blockTypes, getBlockSchema, schemaTemplate } from "@/lib/block-schemas";
 import { SchemaForm } from "./SchemaForm";
 
@@ -25,14 +25,10 @@ export function CreateBlockForm({ existingTypes, onCreate }: Props) {
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState("admin");
   const [props, setProps] = useState<Record<string, unknown>>(schemaTemplate(getBlockSchema("profile").props));
-
-  useEffect(() => {
-    if (visibleBlockTypes.includes(type)) return;
-    const nextType = visibleBlockTypes[0];
-    if (!nextType) return;
-    setType(nextType);
-    setProps(schemaTemplate(getBlockSchema(nextType).props));
-  }, [type, visibleBlockTypes]);
+  const effectiveType = visibleBlockTypes.includes(type) ? type : visibleBlockTypes[0] ?? type;
+  const effectiveProps = effectiveType === type
+    ? props
+    : schemaTemplate(getBlockSchema(effectiveType).props);
 
   function changeType(nextType: (typeof blockTypes)[number]) {
     setType(nextType);
@@ -45,7 +41,7 @@ export function CreateBlockForm({ existingTypes, onCreate }: Props) {
       <div className="mt-4">
         <label className="block text-sm text-muted">
           Type
-          <select className="mt-1 w-full border-2 border-muted bg-bg p-2 text-text" value={type} onChange={(event) => changeType(event.target.value as (typeof blockTypes)[number])}>
+          <select className="mt-1 w-full border-2 border-muted bg-bg p-2 text-text" value={effectiveType} onChange={(event) => changeType(event.target.value as (typeof blockTypes)[number])}>
             {visibleBlockTypes.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
@@ -57,15 +53,15 @@ export function CreateBlockForm({ existingTypes, onCreate }: Props) {
         </label>
       </div>
       <SchemaForm
-        key={type}
-        fields={getBlockSchema(type).props}
-        initialValue={props}
+        key={effectiveType}
+        fields={getBlockSchema(effectiveType).props}
+        initialValue={effectiveProps}
         submitLabel="Create"
         onSubmit={async (nextProps) => {
-          const created = await onCreate({ type, title, visibility, props: nextProps });
+          const created = await onCreate({ type: effectiveType, title, visibility, props: nextProps });
           if (created) {
             setTitle("");
-            setProps(schemaTemplate(getBlockSchema(type).props));
+            setProps(schemaTemplate(getBlockSchema(effectiveType).props));
           }
           return created;
         }}

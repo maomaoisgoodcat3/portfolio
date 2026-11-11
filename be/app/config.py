@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
@@ -12,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Portfolio API"
-    app_env: str = "development"
+    app_env: Literal["development", "production"] = "production"
 
     totp_enc_key: str = Field(validation_alias="TOTP_ENC_KEY")
 
@@ -55,4 +57,8 @@ class Settings(BaseSettings):
         )
 
 
-settings = Settings()
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()

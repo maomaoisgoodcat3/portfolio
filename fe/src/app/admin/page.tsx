@@ -2,15 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, apiGet, apiSend, type Block, type BlockItem } from "@/lib/api";
+import { ApiError, apiGet, apiSend, type Block } from "@/lib/api";
 import { BlockList } from "@/components/admin/BlockList";
 import { blockTypes, CreateBlockForm } from "@/components/admin/CreateBlockForm";
 
 type Me = { email: string; csrf_token: string };
 type BlockType = (typeof blockTypes)[number];
 type BlockPayload = { title?: string; visibility?: string; props?: Record<string, unknown> };
-type ItemPayload = { data?: Record<string, unknown>; visibility?: string };
-
 export default function AdminPage() {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
@@ -138,35 +136,6 @@ export default function AdminPage() {
     if (result) {
       setBlocks(result);
       setStatus("Saved");
-    }
-  }
-
-  async function addItem(blockId: string, payload: { data: Record<string, unknown>; visibility: string }) {
-    const result = await write((token) => apiSend<BlockItem>("POST", `/api/admin/blocks/${blockId}/items`, payload, token));
-    if (!result) return false;
-    setBlocks((current) => current.map((block) => block.id === blockId ? { ...block, items: [...block.items, result] } : block));
-    setStatus("Saved");
-    return true;
-  }
-
-  async function updateItem(id: string, payload: ItemPayload) {
-    const result = await write((token) => apiSend<BlockItem>("PATCH", `/api/admin/items/${id}`, payload, token));
-    if (result) {
-      setBlocks((current) => current.map((block) => ({ ...block, items: block.items.map((item) => item.id === id ? result : item) })));
-      setStatus("Saved");
-    }
-  }
-
-  async function deleteItem(id: string) {
-    let succeeded = false;
-    await write(async (token) => {
-      const result = await apiSend<undefined>("DELETE", `/api/admin/items/${id}`, undefined, token);
-      succeeded = true;
-      return result;
-    });
-    if (succeeded) {
-      setBlocks((current) => current.map((block) => ({ ...block, items: block.items.filter((item) => item.id !== id) })));
-      setStatus("Deleted");
     }
   }
 

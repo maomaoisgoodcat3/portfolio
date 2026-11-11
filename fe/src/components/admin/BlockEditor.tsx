@@ -32,6 +32,7 @@ export function BlockEditor({ block, editing, onEdit, onUpdate }: Props) {
         </label>}
       </div>
       {editing && <SchemaForm
+          key={`${block.id}-${block.type}`}
           fields={schema.props}
           initialValue={block.props}
           submitLabel="Save block"

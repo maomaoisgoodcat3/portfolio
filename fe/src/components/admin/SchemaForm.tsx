@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState, type ReactNode } from "react";
+import { FormEvent, useState, type ReactNode } from "react";
 import { safeHref } from "@/lib/safe-url";
 import type { SchemaField } from "@/lib/block-schemas";
 
@@ -27,17 +27,12 @@ function fieldValue(field: SchemaField, value: Record<string, unknown>): string 
 }
 
 export function SchemaForm({ fields, initialValue, submitLabel, onSubmit, children }: Props) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(fields.map((field) => [field.key, fieldValue(field, initialValue)])),
+  );
   const [advanced, setAdvanced] = useState(false);
-  const [jsonText, setJsonText] = useState(JSON.stringify(initialValue, null, 2));
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const nextValues = Object.fromEntries(fields.map((field) => [field.key, fieldValue(field, initialValue)]));
-    setValues(nextValues);
-    setJsonText(JSON.stringify(initialValue, null, 2));
-    setError(null);
-  }, [fields, initialValue]);
+  const [jsonText, setJsonText] = useState(() => JSON.stringify(initialValue, null, 2));
+  const [error, setError] = useState<string | null>(() => null);
 
   function updateField(key: string, value: string) {
     setValues((current) => ({ ...current, [key]: value }));

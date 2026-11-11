@@ -61,6 +61,18 @@ One block = one entry. Only `profile` is limited to one block. Items stay in the
 
 Public page: profile fills the top half of the fixed left sidebar; links, then contact, fill the bottom half, which scrolls on its own. Other types are grouped in this order: about, experience, projects, research, skills, stats. Every url goes through `safeHref`. Missing keys render nothing.
 
+## Security headers
+- Pages get their headers from headers() in fe/next.config.ts; API responses from the security-headers middleware in be/app. Each side sets its own; Vercel adds HSTS, so the app never sets Strict-Transport-Security.
+- The page CSP has no nonces while cacheComponents is on: 'unsafe-inline' is allowed for scripts and styles and nothing else is loosened; 'unsafe-eval' only in development.
+- A new external origin for scripts, styles, fonts or connections needs a CSP change and a DECISIONS line.
+- Responses under /api/admin/ and /api/auth/ send Cache-Control: no-store.
+- FastAPI docs, redoc and openapi.json are served only when APP_ENV=development.
+
+## Testing (fe/)
+- Playwright tests live in fe/e2e and run against the dev server on 127.0.0.1:3000 with the api container up: npx playwright test.
+- E2E tests never log in, type a password or read secrets.
+
+
 ## Git
 - One branch per task: `task/T-02-short-name`.
 - Conventional Commits: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`,
