@@ -2,6 +2,7 @@ from collections.abc import Generator
 
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
@@ -18,7 +19,14 @@ class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=POSTGRES_NAMING_CONVENTION)
 
 
-engine = create_engine(settings.get_database_url())
+if settings.database_url is not None:
+    engine = create_engine(
+        settings.get_database_url(),
+        poolclass=NullPool,
+        connect_args={"prepare_threshold": None},
+    )
+else:
+    engine = create_engine(settings.get_database_url())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
