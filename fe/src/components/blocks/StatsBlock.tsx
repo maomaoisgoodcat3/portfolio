@@ -52,25 +52,25 @@ export function StatsBlock({ block }: Props) {
           <div className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
             {visibleMetrics.includes("repos") && (
               <div className="pixel-box min-w-0 p-2 text-center">
-                <div className="font-pixel text-2xl text-accent">{stats.data.public_repos}</div>
+                <div className="font-mono font-bold tabular-nums text-2xl text-accent">{stats.data.public_repos}</div>
                 <div className="text-xs text-muted">Repos</div>
               </div>
             )}
             {visibleMetrics.includes("stars") && (
               <div className="pixel-box min-w-0 p-2 text-center">
-                <div className="font-pixel text-2xl text-accent">{stats.data.stars}</div>
+                <div className="font-mono font-bold tabular-nums text-2xl text-accent">{stats.data.stars}</div>
                 <div className="text-xs text-muted">Stars</div>
               </div>
             )}
             {visibleMetrics.includes("contributions") && stats.data.contributions_last_year !== null && (
               <div className="pixel-box min-w-0 p-2 text-center">
-                <div className="font-pixel text-2xl text-accent">{stats.data.contributions_last_year}</div>
+                <div className="font-mono font-bold tabular-nums text-2xl text-accent">{stats.data.contributions_last_year}</div>
                 <div className="text-xs text-muted">Contributions</div>
               </div>
             )}
             {visibleMetrics.includes("languages") && (
               <div className="pixel-box min-w-0 p-2 text-center">
-                <div className="font-pixel text-2xl text-accent">{stats.data.top_languages.length}</div>
+                <div className="font-mono font-bold tabular-nums text-2xl text-accent">{stats.data.top_languages.length}</div>
                 <div className="text-xs text-muted">Languages</div>
                 <div className="mt-1 flex flex-wrap justify-center gap-1">
                   {stats.data.top_languages.map((language) => (
