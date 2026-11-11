@@ -22,6 +22,8 @@ test_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=test_en
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database() -> None:
     # Ensure tables exist in Postgres
+    with test_engine.begin() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
 

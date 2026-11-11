@@ -1,16 +1,19 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Index,
     Integer,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -323,3 +326,149 @@ class ExternalStats(Base):
         nullable=False,
     )
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('github_readme', 'gdoc', 'pdf', 'markdown')",
+            name="kind",
+        ),
+        CheckConstraint(
+            "access IN ('public', 'private')",
+            name="access",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        server_default=text("gen_random_uuid()"),
+    )
+    slug: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    public_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    access: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        default="public",
+        server_default="public",
+    )
+    lang: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        default="en",
+        server_default="en",
+    )
+    content_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ingested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    chunks: Mapped[list["Chunk"]] = relationship(
+        "Chunk",
+        back_populates="document",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+
+class Chunk(Base):
+    __tablename__ = "chunks"
+
+    __table_args__ = (
+        UniqueConstraint("document_id", "ord", name="uq_chunks_document_id_ord"),
+        Index(
+            "ix_chunks_embedding_hnsw",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    ord: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    token_estimate: Mapped[int] = mapped_column(Integer, nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(768), nullable=False)
+
+    document: Mapped["Document"] = relationship(
+        "Document",
+        back_populates="chunks",
+    )
+
+
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class ChatLog(Base):
+    __tablename__ = "chat_logs"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    ip_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    lang: Mapped[str] = mapped_column(Text, nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    answer_chars: Mapped[int] = mapped_column(Integer, nullable=False)
+    sources: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default=text("'[]'::jsonb"),
+    )
+    latency_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    refused: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=text("false"),
+    )
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class ChatUsageDaily(Base):
+    __tablename__ = "chat_usage_daily"
+
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    requests: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default=text("0"),
+    )
