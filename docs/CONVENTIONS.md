@@ -72,6 +72,12 @@ Public page: profile fills the top half of the fixed left sidebar; links, then c
 - Playwright tests live in fe/e2e and run against the dev server on 127.0.0.1:3000 with the api container up: npx playwright test.
 - E2E tests never log in, type a password or read secrets.
 
+## Deploy
+- One Vercel project with Vercel Services: service web (fe/) and service api (be/), routed by vercel.json rewrites; Vercel builds and deploys every push to main.
+- Production secrets live only in Vercel Environment Variables (Production scope) and in my password manager; never in the repo, the course doc or a chat.
+- The app uses the Neon pooled connection string; migrations and the admin CLI use the direct one, run from my machine with the URL typed into Read-Host, never pasted on a command line.
+- Production schema changes: run alembic upgrade head against Neon before pushing code that needs the new schema.
+- CI (.github/workflows/ci.yml) must be green on main; a red CI is fixed before any new task.
 
 ## Git
 - One branch per task: `task/T-02-short-name`.

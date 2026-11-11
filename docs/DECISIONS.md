@@ -114,3 +114,12 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-11 - The public page is a CV layout: a fixed left sidebar (25% width) with the profile in the top half and links, then contact, in a bottom half that scrolls on its own; other blocks are grouped by type in the right column; below lg it is one column - because recruiters should see who I am and how to reach me first, as on a paper CV.
 - 2026-11-11 - Each block is one entry (title plus props such as content, url, tags); items stay in the database but are not used in the UI; only profile is limited to one block (partial unique index in migration 0003). Replaces the T-07a items model - because one block per entry matches how the content is written and keeps the admin simple.
 - 2026-11-11 - Contact blocks show their text only after a Reveal click - because it stops simple HTML scrapers; the public API still returns the text, so the 2026-11-06 rule (no raw phone or plain email) stays the default and a public phone block is an accepted risk.
+
+## Security (2026-11-11)
+- 2026-11-11 - The page CSP is static, set in next.config.ts headers(), with 'unsafe-inline' for scripts and styles and 'unsafe-eval' only in development - because nonces need dynamic rendering and do not work with Partial Prerendering, which cacheComponents uses; XSS defence rests on React escaping, safeHref and no dangerouslySetInnerHTML.
+- 2026-11-11 - img-src allows any https origin - because the avatar is an https URL from any host until T-12 adds upload; narrow it then.
+- 2026-11-11 - The app never sets Strict-Transport-Security - because Vercel adds HSTS to every deployment.
+- 2026-11-11 - API security headers come from one FastAPI middleware; /api/admin and /api/auth always send Cache-Control: no-store - because Next.js headers() does not reach the Python service on Vercel.
+- 2026-11-11 - APP_ENV defaults to production and FastAPI docs, redoc and openapi.json are served only when APP_ENV=development - because a missing variable in production must fail closed.
+- 2026-11-11 - pip-audit is installed in the local portfolio env only, not in the api image; npm audit and pip-audit run by hand until CI exists (T-10).
+- 2026-11-11 - Playwright runs Chromium only, locally against the dev server, with no login in tests - because login needs a real password and TOTP, which must never be in the repo.
