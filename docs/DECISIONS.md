@@ -114,7 +114,7 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-11 - The public page is a CV layout: a fixed left sidebar (25% width) with the profile in the top half and links, then contact, in a bottom half that scrolls on its own; other blocks are grouped by type in the right column; below lg it is one column - because recruiters should see who I am and how to reach me first, as on a paper CV.
 - 2026-11-11 - Each block is one entry (title plus props such as content, url, tags); items stay in the database but are not used in the UI; only profile is limited to one block (partial unique index in migration 0003). Replaces the T-07a items model - because one block per entry matches how the content is written and keeps the admin simple.
 - 2026-11-11 - Contact blocks show their text only after a Reveal click - because it stops simple HTML scrapers; the public API still returns the text, so the 2026-11-06 rule (no raw phone or plain email) stays the default and a public phone block is an accepted risk.
-
+- 2026-11-11 - Numbers in stat tiles use Geist Mono with tabular figures; Pixelify Sans stays for headings and labels - because pixel digits such as 1 and 2 were misread at large sizes.
 ## Security (2026-11-11)
 - 2026-11-11 - The page CSP is static, set in next.config.ts headers(), with 'unsafe-inline' for scripts and styles and 'unsafe-eval' only in development - because nonces need dynamic rendering and do not work with Partial Prerendering, which cacheComponents uses; XSS defence rests on React escaping, safeHref and no dangerouslySetInnerHTML.
 - 2026-11-11 - img-src allows any https origin - because the avatar is an https URL from any host until T-12 adds upload; narrow it then.
@@ -132,3 +132,10 @@ Settled decisions are not reopened without a new entry that replaces them.
 - 2026-11-12 - Production migrations and create-admin run from my machine over the Neon direct connection, with secrets typed into Read-Host - because the pooled connection is for the app, and secrets must not land in shell history.
 - 2026-11-12 - Production has its own admin password, TOTP entry, recovery codes and TOTP_ENC_KEY; content was re-entered through the production admin - because no local secret or data dump should move to production.
 - 2026-11-12 - Production secrets live only in Vercel environment variables (Production scope) and in my password manager.
+
+## External stats (2026-11-11)
+- 2026-11-11 - The sync job runs in GitHub Actions every 6 hours at minute 23 and on demand, as the Postgres role stats_writer with only SELECT, INSERT and UPDATE on external_stats - because a leaked workflow secret must not reach blocks or the admin account, and minute 0 is the busiest time for scheduled runs.
+- 2026-11-11 - python -m app.sync reads only DATABASE_URL, GITHUB_TOKEN and STATS_GITHUB_ACCOUNTS, not the app Settings - because the job must not need TOTP or other app secrets.
+- 2026-11-11 - GitHub metrics: public repos, stars on non-fork repos, contributions in the last year (GraphQL), top 3 languages by repo count, and coarse active hours from public push events in UTC+7; active hours show only when listed in the block's show field - because it keeps the 2026-11-06 rule of coarse, hideable working hours.
+- 2026-11-11 - A failed sync keeps the old numbers and records last_error and last_attempt_at, which the public API never returns - because the page should show the last good data with its date, and error text is internal.
+- 2026-11-11 - The sync uses the token Actions issues for each run (github.token) <or: a fine-grained PAT limited to public repositories, read-only, expiring after 90 days> - because no long-lived personal token should be needed.
