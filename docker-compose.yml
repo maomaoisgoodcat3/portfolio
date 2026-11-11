@@ -1,6 +1,6 @@
 services:
   db:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:pg17-trixie
     restart: unless-stopped
     env_file:
       - be/.env

@@ -1,0 +1,23 @@
+# - slug: portfolio-readme
+#   title: Portfolio README
+#   kind: github_readme
+#   source: maomaoisgoodcat3/portfolio
+#   public_url: https://github.com/maomaoisgoodcat3/portfolio
+#
+# - slug: course-notes
+#   title: Course notes
+#   kind: gdoc
+#   source: DOCUMENT_ID
+#   public_url: https://docs.google.com/document/d/DOCUMENT_ID
+#
+# - slug: paper
+#   title: Research paper
+#   kind: pdf
+#   source: paper.pdf
+#   public_url: https://example.com/paper.pdf
+
+
+- slug: NeuroSurgeon
+  title: Neuro Surgeon Research
+  kind: pdf
+  source: NeuroSurgeon.pdf

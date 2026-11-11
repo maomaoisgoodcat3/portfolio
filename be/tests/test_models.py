@@ -8,9 +8,14 @@ from app.config import Settings
 from app.db import Base
 from app.models import Block, BlockItem
 
+FERNET_KEY = "0" * 43 + "="
+
 
 def test_settings_database_url_from_components() -> None:
     settings = Settings(
+        _env_file=None,
+        DATABASE_URL=None,
+        TOTP_ENC_KEY=FERNET_KEY,
         postgres_user="test_user",
         postgres_password="test_password",
         postgres_db="test_db",
@@ -27,6 +32,8 @@ def test_settings_database_url_from_components() -> None:
 def test_settings_database_url_override() -> None:
     custom_url = "postgresql+psycopg://admin:secret@custom:6543/custom_db"
     settings = Settings(
+        _env_file=None,
+        TOTP_ENC_KEY=FERNET_KEY,
         DATABASE_URL=custom_url,
         postgres_user="user",
         postgres_password="pw",
