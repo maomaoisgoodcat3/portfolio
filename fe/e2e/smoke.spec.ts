@@ -23,6 +23,20 @@ test("Cazung is public only and supports keyboard controls", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Open chat with Cazung" })).toHaveCount(0);
 });
 
+test("Cazung click opens chat but dragging does not", async ({ page }) => {
+  await page.goto("/");
+  const canvas = page.getByRole("button", { name: "Open chat with Cazung" });
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("Cazung canvas is not visible.");
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2, { steps: 3 });
+  await page.mouse.up();
+  await expect(page.getByRole("heading", { name: "Cazung" })).toBeHidden();
+  await canvas.click();
+  await expect(page.getByRole("heading", { name: "Cazung" })).toBeVisible();
+});
+
 test("the public page has no horizontal overflow on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");

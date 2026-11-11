@@ -1,7 +1,7 @@
 import * as S from "./sprite";
 
 export type PetState = "idle" | "look" | "sit" | "stretch" | "sleep" | "think" | "talk" | "happy" | "sad" | "walk" | "jump";
-type Handler = () => void;
+type Handler = (value?: number) => void;
 
 export class Pet {
   private readonly canvas: HTMLCanvasElement;
@@ -15,10 +15,14 @@ export class Pet {
   private x = 20;
   private direction = 1;
   private dragging = false;
+  private falling = false;
+  private fallVelocity = 0;
+  private bottomOffset = 8;
+  private landingUntil = 0;
   private dragOffset = 0;
   private down: { x: number; y: number } | null = null;
   private clickTimer = 0;
-  private handlers: Partial<Record<"click" | "doubleClick", Handler>> = {};
+  private handlers: Partial<Record<"click" | "doubleClick" | "position", Handler>> = {};
   private readonly onResize = () => { this.scale = window.innerWidth > 640 ? 3 : 2; this.resize(); };
   private readonly onVisibility = () => { if (!document.hidden) this.schedule(); };
 
@@ -34,11 +38,12 @@ export class Pet {
     this.behaviorTimer = window.setInterval(() => this.behave(), 1000);
     this.schedule();
   }
-  on(event: "click" | "doubleClick", handler: Handler) { this.handlers[event] = handler; }
+  on(event: "click" | "doubleClick" | "position", handler: Handler) { this.handlers[event] = handler; }
   act(state: Extract<PetState, "think" | "talk" | "happy" | "sad">) { if (!this.dragging) { this.state = state; this.modeSince = performance.now(); } }
   jump() { if (!this.dragging) { this.state = "jump"; this.modeSince = performance.now(); } }
   destroy() {
     cancelAnimationFrame(this.frame); window.clearInterval(this.behaviorTimer);
+    window.clearTimeout(this.clickTimer);
     window.removeEventListener("resize", this.onResize); document.removeEventListener("visibilitychange", this.onVisibility);
     this.canvas.removeEventListener("pointerdown", this.onDown); this.canvas.removeEventListener("pointermove", this.onMove);
     this.canvas.removeEventListener("pointerup", this.onUp); this.canvas.removeEventListener("pointercancel", this.onUp);
@@ -48,7 +53,9 @@ export class Pet {
     this.x = Math.max(0, Math.min(window.innerWidth - this.canvas.width / devicePixelRatio, this.x));
     this.canvas.style.left = "0";
     this.canvas.style.transform = `translateX(${this.x}px)`;
+    this.bottomOffset = 8;
     this.canvas.style.bottom = "8px";
+    this.handlers.position?.(this.x);
   }
   private bind() {
     window.addEventListener("resize", this.onResize); document.addEventListener("visibilitychange", this.onVisibility);
@@ -60,19 +67,31 @@ export class Pet {
     if (!this.down) return;
     if (!this.dragging && Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y) > 6) this.dragging = true;
     if (this.dragging) {
-      this.state = "walk"; this.canvas.style.bottom = `${Math.max(0, window.innerHeight - event.clientY - this.canvas.height)}px`;
+      this.state = "happy";
+      this.bottomOffset = Math.max(0, window.innerHeight - event.clientY - this.canvas.height);
+      this.canvas.style.bottom = `${this.bottomOffset}px`;
       this.x = Math.max(0, Math.min(window.innerWidth - this.canvas.width / devicePixelRatio, event.clientX - this.dragOffset));
       this.canvas.style.left = "0";
       this.canvas.style.transform = `translateX(${this.x}px)`;
+      this.handlers.position?.(this.x);
     }
   };
   private onUp = () => {
     if (!this.down) return;
     const dragged = this.dragging; this.down = null; this.dragging = false;
-    if (dragged) { this.placeBottom(); this.state = "idle"; return; }
+    if (dragged) { this.release(); return; }
     if (this.clickTimer) { window.clearTimeout(this.clickTimer); this.clickTimer = 0; this.handlers.doubleClick?.(); }
     else this.clickTimer = window.setTimeout(() => { this.clickTimer = 0; this.handlers.click?.(); }, 220);
   };
+  private release() {
+    if (this.reducedMotion) {
+      this.placeBottom();
+      this.state = "walk";
+      return;
+    }
+    this.falling = true;
+    this.fallVelocity = 0;
+  }
   private behave() {
     if (this.state !== "idle" || this.reducedMotion || document.hidden) return;
     if (Math.random() < 0.1) { this.state = ["look", "sit", "stretch", "sleep"][Math.floor(Math.random() * 4)] as PetState; this.modeSince = performance.now(); }
@@ -82,6 +101,21 @@ export class Pet {
   private loop(time: number) {
     if (document.hidden) return;
     const age = time - this.modeSince;
+    if (this.falling) {
+      this.fallVelocity = Math.min(18, this.fallVelocity + 0.6);
+      this.bottomOffset = Math.max(8, this.bottomOffset - this.fallVelocity);
+      this.canvas.style.bottom = `${this.bottomOffset}px`;
+      if (this.bottomOffset === 8) {
+        this.falling = false;
+        this.landingUntil = time + 220;
+        this.modeSince = time;
+        this.state = "jump";
+      }
+    } else if (this.landingUntil && time >= this.landingUntil) {
+      this.landingUntil = 0;
+      this.state = "walk";
+      this.modeSince = time;
+    }
     if (this.state === "walk") {
       this.x += this.direction * 1.5;
       if (this.x <= 0 || this.x >= window.innerWidth - this.canvas.width) this.direction *= -1;

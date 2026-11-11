@@ -36,18 +36,29 @@ function Markdown({ text }: { text: string }) {
   return <>{nodes}</>;
 }
 
-type Props = { open: boolean; onClose: () => void; pet: Pet | null };
-export function ChatPanel({ open, onClose, pet }: Props) {
+type Props = { open: boolean; onClose: () => void; pet: Pet | null; anchorX: number };
+export function ChatPanel({ open, onClose, pet, anchorX }: Props) {
   const [message, setMessage] = useState(""); const [messages, setMessages] = useState<ChatHistoryItem[]>([]);
   const [rendered, setRendered] = useState<ChatHistoryItem[]>([]); const [sources, setSources] = useState<Record<number, ChatSource[]>>({});
   const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
-  const turnstile = useRef<string | null>(null); const tokenWaiter = useRef<((token: string) => void) | null>(null); const host = useRef<HTMLDivElement>(null);
+  const turnstile = useRef<string | null>(null); const tokenWaiter = useRef<{ resolve: (token: string) => void; reject: (error: unknown) => void } | null>(null); const host = useRef<HTMLDivElement>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   useEffect(() => {
     if (!open || !host.current || !siteKey) return;
     let active = true;
-    const render = () => { if (active && window.turnstile && host.current && !turnstile.current) turnstile.current = window.turnstile.render(host.current, { sitekey: siteKey, size: "normal", callback: (token: string) => tokenWaiter.current?.(token) }); };
+    const render = () => {
+      if (active && window.turnstile && host.current && !turnstile.current) {
+        turnstile.current = window.turnstile.render(host.current, {
+          sitekey: siteKey,
+          execution: "execute",
+          appearance: "interaction-only",
+          callback: (token: string) => tokenWaiter.current?.resolve(token),
+          "error-callback": () => tokenWaiter.current?.reject(new ApiError(403, "Verification failed")),
+          "expired-callback": () => tokenWaiter.current?.reject(new ApiError(403, "Verification expired")),
+        });
+      }
+    };
     if (window.turnstile) render();
     else {
       const script = document.createElement("script"); script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; script.async = true; script.onload = render; document.head.appendChild(script);
@@ -64,9 +75,9 @@ export function ChatPanel({ open, onClose, pet }: Props) {
   async function send() {
     if (!message.trim() || busy || !turnstile.current) return;
     const question = message.trim(); setMessage(""); setError(null); setBusy(true); pet?.act("think");
-    const token = await new Promise<string>((resolve) => {
-      const id = turnstile.current; if (!id || !window.turnstile) return resolve("");
-      tokenWaiter.current = resolve; window.turnstile.execute(id);
+    const token = await new Promise<string>((resolve, reject) => {
+      const id = turnstile.current; if (!id || !window.turnstile) return reject(new ApiError(403, "Verification failed"));
+      tokenWaiter.current = { resolve, reject }; window.turnstile.execute(id);
     });
     try {
       if (!token) throw new ApiError(403, "Verification failed");
@@ -84,11 +95,11 @@ export function ChatPanel({ open, onClose, pet }: Props) {
     } catch (caught) {
       pet?.act("sad");
       setError(caught instanceof ApiError && caught.status === 429 ? "Please wait a little before asking again" : caught instanceof ApiError && caught.status === 503 ? "Chat is resting right now" : caught instanceof ApiError && caught.status === 403 ? "Please complete the verification to continue." : "Cazung could not answer right now.");
-    } finally { setBusy(false); if (turnstile.current) window.turnstile?.reset(turnstile.current); }
+    } finally { tokenWaiter.current = null; setBusy(false); if (turnstile.current) window.turnstile?.reset(turnstile.current); }
   }
 
   if (!open) return null;
-  return <section className="cazung-panel pixel-box" aria-label="Cazung chat">
+  return <section className="cazung-panel pixel-box" style={{ left: `clamp(12px, ${anchorX}px, calc(100vw - 372px))` }} aria-label="Cazung chat">
     <header className="flex items-center justify-between border-b-2 border-current bg-accent px-2 py-2 text-bg"><h2 className="font-pixel text-lg">Cazung</h2><button type="button" onClick={onClose} aria-label="Close chat">×</button></header>
     <div className="cazung-messages" aria-live="polite">
       {rendered.map((item, index) => <div key={`${index}-${item.role}`} className={`cazung-message ${item.role === "user" ? "cazung-user" : "cazung-assistant"}`}><Markdown text={item.content} />{item.role === "assistant" && sources[index]?.length ? <div className="mt-2 text-xs">{sources[index].map((source) => source.access === "private" ? <div key={source.title}><span>{source.title} — Private, under review</span> <a href="#contact">Contact</a></div> : <div key={`${source.title}-${source.url}`}><a href={safeHref(source.url) ?? "#"}>{source.title}</a></div>)}</div> : null}</div>)}

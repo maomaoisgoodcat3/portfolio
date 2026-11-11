@@ -77,12 +77,12 @@ button:disabled {
   height: auto;
   image-rendering: pixelated;
   pointer-events: auto;
+  touch-action: none;
   cursor: grab;
 }
 
 .cazung-panel {
   position: fixed;
-  right: 12px;
   bottom: 116px;
   z-index: 42;
   width: min(360px, calc(100vw - 24px));
