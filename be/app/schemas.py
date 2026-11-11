@@ -36,10 +36,22 @@ class GithubStatsItemData(BaseModel):
 
     provider: Literal["github"]
     account: str = Field(min_length=1, max_length=100)
-    show: list[str] = Field(default_factory=list)
+    show: list[
+        Literal["repos", "stars", "contributions", "languages", "active_hours"]
+    ] = Field(default_factory=list)
 
 
 StatsItemData = Annotated[GithubStatsItemData, Field(discriminator="provider")]
+
+
+class GithubStatsBlockProps(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider: Literal["github"]
+    account: str = Field(min_length=1, max_length=100)
+    show: list[
+        Literal["repos", "stars", "contributions", "languages", "active_hours"]
+    ] = Field(default_factory=list)
 
 
 # Block Schemas

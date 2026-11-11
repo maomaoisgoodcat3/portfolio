@@ -109,6 +109,23 @@ def test_admin_create_block_validation_errors(admin_client: TestClient) -> None:
     )
     assert res.status_code == 422
 
+
+def test_admin_stats_props_are_validated(admin_client: TestClient) -> None:
+    response = admin_client.post(
+        "/api/admin/blocks",
+        json={
+            "type": "stats",
+            "title": "GitHub",
+            "props": {
+                "provider": "github",
+                "account": "owner",
+                "show": ["invalid"],
+            },
+        },
+    )
+
+    assert response.status_code == 422
+
     # Empty title
     res = admin_client.post(
         "/api/admin/blocks",
@@ -252,7 +269,14 @@ def test_admin_create_item_auto_position_within_block(
 
 
 def test_admin_stats_item_valid_github(admin_client: TestClient) -> None:
-    b = admin_client.post("/api/admin/blocks", json={"type": "stats", "title": "Stats"}).json()
+    b = admin_client.post(
+        "/api/admin/blocks",
+        json={
+            "type": "stats",
+            "title": "Stats",
+            "props": {"provider": "github", "account": "octocat"},
+        },
+    ).json()
     block_id = b["id"]
 
     res = admin_client.post(
@@ -273,7 +297,14 @@ def test_admin_stats_item_valid_github(admin_client: TestClient) -> None:
 def test_admin_stats_item_invalid_provider_returns_422(
     admin_client: TestClient,
 ) -> None:
-    b = admin_client.post("/api/admin/blocks", json={"type": "stats", "title": "Stats"}).json()
+    b = admin_client.post(
+        "/api/admin/blocks",
+        json={
+            "type": "stats",
+            "title": "Stats",
+            "props": {"provider": "github", "account": "octocat"},
+        },
+    ).json()
     block_id = b["id"]
 
     # Unsupported provider
@@ -306,7 +337,14 @@ def test_admin_stats_item_invalid_provider_returns_422(
 
 
 def test_admin_stats_item_patch_validation(admin_client: TestClient) -> None:
-    b = admin_client.post("/api/admin/blocks", json={"type": "stats", "title": "Stats"}).json()
+    b = admin_client.post(
+        "/api/admin/blocks",
+        json={
+            "type": "stats",
+            "title": "Stats",
+            "props": {"provider": "github", "account": "octocat"},
+        },
+    ).json()
     item = admin_client.post(
         f"/api/admin/blocks/{b['id']}/items",
         json={"data": {"provider": "github", "account": "octocat"}},
@@ -322,7 +360,13 @@ def test_admin_stats_item_patch_validation(admin_client: TestClient) -> None:
     # Patch with valid github data
     res_good = admin_client.patch(
         f"/api/admin/items/{item['id']}",
-        json={"data": {"provider": "github", "account": "octocat2", "show": ["commits"]}},
+        json={
+            "data": {
+                "provider": "github",
+                "account": "octocat2",
+                "show": ["contributions"],
+            }
+        },
     )
     assert res_good.status_code == 200
     assert res_good.json()["data"]["account"] == "octocat2"

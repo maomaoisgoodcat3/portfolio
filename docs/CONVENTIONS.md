@@ -78,7 +78,11 @@ Public page: profile fills the top half of the fixed left sidebar; links, then c
 - The app uses the Neon pooled connection string; migrations and the admin CLI use the direct one, run from my machine with the URL typed into Read-Host, never pasted on a command line.
 - Production schema changes: run alembic upgrade head against Neon before pushing code that needs the new schema.
 - CI (.github/workflows/ci.yml) must be green on main; a red CI is fixed before any new task.
-
+## External stats
+- Each external site is one adapter in be/app/adapters, registered by provider name; adapters only fetch and return data, they never write to the database.
+- Only python -m app.sync calls external APIs; request handlers never do.
+- The sync job connects as the stats_writer role, which can only SELECT, INSERT and UPDATE external_stats.
+- Tokens are never logged or stored; last_error holds a short message without URLs that contain credentials.
 ## Git
 - One branch per task: `task/T-02-short-name`.
 - Conventional Commits: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`,

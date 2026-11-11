@@ -1,22 +1,22 @@
 from collections import defaultdict
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.deps import get_db
-from app.models import Block, BlockItem
+from app.models import Block, BlockItem, ExternalStats
 from app.schemas import BlockItemResponse, BlockResponse
 
 router = APIRouter(prefix="/api/public", tags=["public"])
 
 
-@router.get("/blocks", response_model=list[BlockResponse])
+@router.get("/blocks", response_model=None)
 def get_public_blocks(
     db: Annotated[Session, Depends(get_db)],
-) -> list[BlockResponse]:
+) -> list[dict[str, Any]]:
     # Query only public blocks ordered by position ASC
     blocks = list(
         db.scalars(
@@ -30,6 +30,31 @@ def get_public_blocks(
         return []
 
     block_ids = [b.id for b in blocks]
+    stats_blocks = [block for block in blocks if block.type == "stats"]
+    stats_by_key = {}
+    if stats_blocks:
+        stats_keys = [
+            (block.props.get("provider"), block.props.get("account"))
+            for block in stats_blocks
+        ]
+        stats_rows = db.scalars(
+            select(ExternalStats).where(
+                or_(
+                    *(
+                        and_(
+                            ExternalStats.provider == provider,
+                            ExternalStats.account == account,
+                        )
+                        for provider, account in stats_keys
+                    )
+                )
+            )
+        ).all()
+        stats_by_key = {
+            (row.provider, row.account): row
+            for row in stats_rows
+            if row.fetched_at is not None
+        }
 
     # Query only public items for these blocks ordered by position ASC
     public_items = list(
@@ -49,8 +74,9 @@ def get_public_blocks(
             BlockItemResponse.model_validate(item)
         )
 
-    return [
-        BlockResponse(
+    result = []
+    for b in blocks:
+        response = BlockResponse(
             id=b.id,
             type=b.type,
             title=b.title,
@@ -60,6 +86,13 @@ def get_public_blocks(
             items=items_by_block.get(b.id, []),
             created_at=b.created_at,
             updated_at=b.updated_at,
-        )
-        for b in blocks
-    ]
+        ).model_dump(mode="json")
+        if b.type == "stats":
+            row = stats_by_key.get((b.props.get("provider"), b.props.get("account")))
+            response["stats"] = (
+                {"data": row.data, "fetched_at": row.fetched_at}
+                if row is not None
+                else None
+            )
+        result.append(response)
+    return result

@@ -8,6 +8,24 @@ export type BlockItem = {
   updated_at: string;
 };
 
+export type PublicStatsData = {
+  public_repos: number;
+  stars: number;
+  top_languages: string[];
+  contributions_last_year: number | null;
+  active_parts: {
+    night: number;
+    morning: number;
+    afternoon: number;
+    evening: number;
+  };
+};
+
+export type PublicStats = {
+  data: PublicStatsData;
+  fetched_at: string;
+};
+
 export type Block = {
   id: string;
   type: string;
@@ -16,6 +34,7 @@ export type Block = {
   visibility: string;
   props: Record<string, unknown>;
   items: BlockItem[];
+  stats?: PublicStats | null;
   created_at: string;
   updated_at: string;
 };

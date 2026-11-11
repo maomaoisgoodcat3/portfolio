@@ -2,7 +2,9 @@ from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy.engine import URL, make_url
+from sqlalchemy.engine import URL
+
+from app.db_url import normalize_database_url
 
 
 class Settings(BaseSettings):
@@ -68,10 +70,7 @@ class Settings(BaseSettings):
 
     def get_database_url(self) -> URL:
         if self.database_url is not None:
-            url = make_url(self.database_url.get_secret_value())
-            if url.drivername in {"postgres", "postgresql", "postgresql+psycopg2"}:
-                url = url.set(drivername="postgresql+psycopg")
-            return url
+            return normalize_database_url(self.database_url.get_secret_value())
         assert (
             self.postgres_user is not None
             and self.postgres_password is not None
