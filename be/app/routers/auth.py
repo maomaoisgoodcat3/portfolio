@@ -16,6 +16,7 @@ from app.auth_utils import (
     verify_recovery_code,
     verify_totp_code,
 )
+from app.client_ip import get_client_ip
 from app.config import settings
 from app.deps import get_db, require_admin
 from app.models import AdminSession, AdminUser, LoginEvent, RecoveryCode
@@ -42,10 +43,6 @@ class LoginRequest(BaseModel):
 
 class TotpRequest(BaseModel):
     code: str = Field(max_length=32)
-
-
-def _client_ip(request: Request) -> str:
-    return request.client.host if request.client else ""
 
 
 def _set_session_cookie(response: Response, token: str, max_age: int) -> None:
@@ -105,7 +102,7 @@ def login(
 ) -> dict[str, bool]:
     now = datetime.now(timezone.utc)
     email = payload.email.strip().lower()
-    ip = _client_ip(request)
+    ip = get_client_ip(request)
     email_key = f"login:email:{email}"
     ip_key = f"login:ip:{ip}"
     if is_locked(db, email_key, now) or is_locked(db, ip_key, now):
@@ -161,7 +158,7 @@ def verify_totp(
     db: Annotated[Session, Depends(get_db)],
 ) -> dict[str, str]:
     now = datetime.now(timezone.utc)
-    ip = _client_ip(request)
+    ip = get_client_ip(request)
     raw_token = request.cookies.get(COOKIE_NAME)
     pending = get_session(db, raw_token, require_mfa=False, now=now) if raw_token else None
     if pending is None or pending.mfa_passed:

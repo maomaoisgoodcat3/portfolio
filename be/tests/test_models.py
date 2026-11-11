@@ -21,7 +21,7 @@ def test_settings_database_url_from_components() -> None:
     assert url.render_as_string(hide_password=False) == (
         "postgresql+psycopg://test_user:test_password@test_host:5432/test_db"
     )
-    assert settings.database_url == url
+    assert settings.database_url is None
 
 
 def test_settings_database_url_override() -> None:
@@ -34,8 +34,12 @@ def test_settings_database_url_override() -> None:
         postgres_host="host",
         postgres_port=5432,
     )
-    assert settings.get_database_url() == custom_url
-    assert settings.database_url == custom_url
+    assert (
+        settings.get_database_url().render_as_string(hide_password=False)
+        == custom_url
+    )
+    assert settings.database_url is not None
+    assert settings.database_url.get_secret_value() == custom_url
 
 
 def test_base_metadata_naming_convention() -> None:
