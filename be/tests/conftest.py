@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
 from app.db import Base
+from app.db_views import PUBLIC_CHUNKS_VIEW_SQL
 from app.deps import get_db, require_admin
 from app.main import app
 
@@ -26,6 +27,8 @@ def setup_test_database() -> None:
         connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
+    with test_engine.begin() as connection:
+        connection.execute(text(PUBLIC_CHUNKS_VIEW_SQL))
 
 
 @pytest.fixture(autouse=True)

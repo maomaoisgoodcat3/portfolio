@@ -13,6 +13,8 @@ from alembic import op
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.dialects import postgresql
 
+from app.db_views import PUBLIC_CHUNKS_VIEW_SQL
+
 revision: str = "0005"
 down_revision: str | None = "0004"
 branch_labels: str | Sequence[str] | None = None
@@ -171,21 +173,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("day", name=op.f("pk_chat_usage_daily")),
     )
 
-    op.execute(
-        """
-        CREATE VIEW public_chunks AS
-        SELECT
-            chunks.id,
-            chunks.text,
-            chunks.embedding,
-            documents.title,
-            documents.public_url,
-            documents.access,
-            documents.lang
-        FROM chunks
-        JOIN documents ON documents.id = chunks.document_id
-        """
-    )
+    op.execute(PUBLIC_CHUNKS_VIEW_SQL)
 
 
 def downgrade() -> None:

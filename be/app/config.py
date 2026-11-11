@@ -31,10 +31,42 @@ class Settings(BaseSettings):
     postgres_host: str | None = None
     postgres_port: int | None = None
     client_ip_header: str = Field(default="", validation_alias="CLIENT_IP_HEADER")
+    gemini_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias="GEMINI_API_KEY",
+    )
+    gemini_chat_model: str | None = Field(
+        default=None,
+        validation_alias="GEMINI_CHAT_MODEL",
+    )
+    gemini_embed_model: str = Field(
+        default="gemini-embedding-001",
+        validation_alias="GEMINI_EMBED_MODEL",
+    )
+    chat_database_url: SecretStr | None = Field(
+        default=None,
+        validation_alias="CHAT_DATABASE_URL",
+    )
+    turnstile_secret_key: SecretStr | None = Field(
+        default=None,
+        validation_alias="TURNSTILE_SECRET_KEY",
+    )
+    ip_hash_salt: SecretStr | None = Field(
+        default=None,
+        validation_alias="IP_HASH_SALT",
+    )
+    chat_daily_limit: int = Field(default=300, validation_alias="CHAT_DAILY_LIMIT")
 
     @field_validator("database_url", mode="before")
     @classmethod
     def _empty_database_url_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("chat_database_url", mode="before")
+    @classmethod
+    def _empty_chat_database_url_is_unset(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip():
             return None
         return value
@@ -85,6 +117,24 @@ class Settings(BaseSettings):
             host=self.postgres_host,
             port=self.postgres_port,
             database=self.postgres_db,
+        )
+
+    def get_chat_database_url(self) -> URL | None:
+        if self.chat_database_url is None:
+            return None
+        return normalize_database_url(self.chat_database_url.get_secret_value())
+
+    @property
+    def chat_settings_available(self) -> bool:
+        return all(
+            value is not None
+            for value in (
+                self.gemini_api_key,
+                self.gemini_chat_model,
+                self.chat_database_url,
+                self.turnstile_secret_key,
+                self.ip_hash_salt,
+            )
         )
 
 

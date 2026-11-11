@@ -1,14 +1,15 @@
-from typing import Annotated
+from datetime import date
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-from pydantic import TypeAdapter, ValidationError
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.deps import get_db, require_admin
-from app.models import Block, BlockItem
+from app.models import AppSetting, Block, BlockItem, ChatLog, ChatUsageDaily
 from app.schemas import (
     BlockCreate,
     BlockItemCreate,
@@ -25,6 +26,68 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(require_admin)],
 )
+
+
+class ChatSettingsPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    chat_enabled: bool
+
+
+@router.get("/chat/settings")
+def get_chat_settings(
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, bool]:
+    value = db.scalar(
+        select(AppSetting.value).where(AppSetting.key == "chat_enabled")
+    )
+    return {"chat_enabled": value == "true"}
+
+
+@router.put("/chat/settings")
+def update_chat_settings(
+    payload: ChatSettingsPayload,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, bool]:
+    setting = db.get(AppSetting, "chat_enabled")
+    if setting is None:
+        setting = AppSetting(key="chat_enabled", value=str(payload.chat_enabled).lower())
+        db.add(setting)
+    else:
+        setting.value = str(payload.chat_enabled).lower()
+    db.commit()
+    return {"chat_enabled": payload.chat_enabled}
+
+
+@router.get("/chat/stats")
+def get_chat_stats(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, Any]:
+    today = db.scalar(
+        select(ChatUsageDaily.requests).where(ChatUsageDaily.day == date.today())
+    ) or 0
+    logs = db.scalars(
+        select(ChatLog).order_by(ChatLog.created_at.desc()).limit(50)
+    ).all()
+    return {
+        "today": today,
+        "chat_daily_limit": request.app.state.settings.chat_daily_limit,
+        "logs": [
+            {
+                "id": log.id,
+                "created_at": log.created_at,
+                "lang": log.lang,
+                "question": log.question,
+                "answer_chars": log.answer_chars,
+                "sources": log.sources,
+                "latency_ms": log.latency_ms,
+                "refused": log.refused,
+                "error": log.error,
+            }
+            for log in logs
+        ],
+    }
 
 
 # ---------------------------------------------------------
