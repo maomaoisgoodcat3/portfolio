@@ -33,6 +33,63 @@ def test_sync_help_does_not_require_application_settings() -> None:
     assert "usage:" in result.stdout
 
 
+def test_sync_missing_database_url_returns_two() -> None:
+    environment = os.environ.copy()
+    environment.pop("DATABASE_URL", None)
+    environment["STATS_GITHUB_ACCOUNTS"] = "owner"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "app.sync"],
+        capture_output=True,
+        text=True,
+        env=environment,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert result.stderr.strip() == (
+        "DATABASE_URL is missing or not a valid database URL"
+    )
+
+
+def test_sync_empty_accounts_returns_two() -> None:
+    environment = os.environ.copy()
+    environment["DATABASE_URL"] = "postgresql://user:password@localhost:5432/db"
+    environment["STATS_GITHUB_ACCOUNTS"] = "  , "
+
+    result = subprocess.run(
+        [sys.executable, "-m", "app.sync"],
+        capture_output=True,
+        text=True,
+        env=environment,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert result.stderr.strip() == (
+        "DATABASE_URL is missing or not a valid database URL"
+    )
+
+
+def test_sync_invalid_database_url_returns_two() -> None:
+    environment = os.environ.copy()
+    environment["DATABASE_URL"] = "not-a-database-url"
+    environment["STATS_GITHUB_ACCOUNTS"] = "owner"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "app.sync"],
+        capture_output=True,
+        text=True,
+        env=environment,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert result.stderr.strip() == (
+        "DATABASE_URL is missing or not a valid database URL"
+    )
+
+
 def test_sync_failure_keeps_old_data_and_does_not_store_token(
     db_session, monkeypatch
 ) -> None:

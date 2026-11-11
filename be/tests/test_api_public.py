@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import Block, BlockItem
+from app.models import Block, BlockItem, ExternalStats
 
 
 def test_get_public_blocks_empty(client: TestClient) -> None:
@@ -106,3 +108,94 @@ def test_get_public_blocks_does_not_require_auth(client: TestClient) -> None:
     # client fixture has no require_admin override
     response = client.get("/api/public/blocks")
     assert response.status_code == 200
+
+
+def test_public_stats_block_includes_fetched_stats(
+    client: TestClient, db_session: Session
+) -> None:
+    block = Block(
+        type="stats",
+        title="GitHub",
+        position=0,
+        visibility="public",
+        props={"provider": "github", "account": "owner"},
+    )
+    db_session.add(block)
+    db_session.add(
+        ExternalStats(
+            provider="github",
+            account="owner",
+            data={"stars": 12},
+            fetched_at=datetime.now(timezone.utc),
+            last_attempt_at=datetime.now(timezone.utc),
+            last_error="hidden",
+        )
+    )
+    db_session.commit()
+
+    response = client.get("/api/public/blocks")
+
+    assert response.status_code == 200
+    assert response.json()[0]["stats"]["data"] == {"stars": 12}
+    assert "last_error" not in response.json()[0]["stats"]
+
+
+def test_public_stats_block_without_row_has_null_stats(
+    client: TestClient, db_session: Session
+) -> None:
+    db_session.add(
+        Block(
+            type="stats",
+            title="GitHub",
+            position=0,
+            visibility="public",
+            props={"provider": "github", "account": "owner"},
+        )
+    )
+    db_session.commit()
+
+    assert client.get("/api/public/blocks").json()[0]["stats"] is None
+
+
+def test_public_stats_block_with_unfetched_row_has_null_stats(
+    client: TestClient, db_session: Session
+) -> None:
+    now = datetime.now(timezone.utc)
+    db_session.add(
+        Block(
+            type="stats",
+            title="GitHub",
+            position=0,
+            visibility="public",
+            props={"provider": "github", "account": "owner"},
+        )
+    )
+    db_session.add(
+        ExternalStats(
+            provider="github",
+            account="owner",
+            data={"stars": 12},
+            fetched_at=None,
+            last_attempt_at=now,
+        )
+    )
+    db_session.commit()
+
+    assert client.get("/api/public/blocks").json()[0]["stats"] is None
+
+
+def test_admin_stats_block_is_not_public(
+    client: TestClient, db_session: Session
+) -> None:
+    db_session.add(
+        Block(
+            type="stats",
+            title="GitHub",
+            position=0,
+            visibility="admin",
+            props={"provider": "github", "account": "owner"},
+        )
+    )
+    db_session.commit()
+
+    assert client.get("/api/public/blocks").json() == []

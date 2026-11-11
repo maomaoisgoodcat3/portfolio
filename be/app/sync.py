@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, timezone
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.pool import NullPool
 
 from app.adapters.registry import get_adapters
@@ -93,10 +94,21 @@ def main() -> int:
     del args
 
     database_url = os.getenv("DATABASE_URL", "").strip()
-    if not database_url:
-        print("DATABASE_URL is required.", file=sys.stderr)
-        return 1
-    failed = sync_accounts(database_url, _accounts(), os.getenv("GITHUB_TOKEN"))
+    accounts = _accounts()
+    if not database_url or not accounts:
+        print(
+            "DATABASE_URL is missing or not a valid database URL",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        failed = sync_accounts(database_url, accounts, os.getenv("GITHUB_TOKEN"))
+    except (ArgumentError, ValueError):
+        print(
+            "DATABASE_URL is missing or not a valid database URL",
+            file=sys.stderr,
+        )
+        return 2
     return 1 if failed else 0
 
 

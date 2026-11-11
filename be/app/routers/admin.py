@@ -16,6 +16,7 @@ from app.schemas import (
     BlockItemUpdate,
     BlockResponse,
     BlockUpdate,
+    GithubStatsBlockProps,
     StatsItemData,
 )
 
@@ -69,6 +70,17 @@ def create_block(
     payload: BlockCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> BlockResponse:
+    if payload.type == "stats":
+        try:
+            payload.props = GithubStatsBlockProps.model_validate(
+                payload.props
+            ).model_dump()
+        except ValidationError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=error.errors(),
+            ) from None
+
     if payload.type == "profile":
         if db.scalar(select(Block.id).where(Block.type == payload.type)) is not None:
             raise HTTPException(
@@ -183,6 +195,16 @@ def patch_block(
     if payload.visibility is not None:
         block.visibility = payload.visibility
     if payload.props is not None:
+        if block.type == "stats":
+            try:
+                payload.props = GithubStatsBlockProps.model_validate(
+                    payload.props
+                ).model_dump()
+            except ValidationError as error:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail=error.errors(),
+                ) from None
         block.props = payload.props
 
     db.commit()
