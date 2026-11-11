@@ -83,6 +83,16 @@ Public page: profile fills the top half of the fixed left sidebar; links, then c
 - Only python -m app.sync calls external APIs; request handlers never do.
 - The sync job connects as the stats_writer role, which can only SELECT, INSERT and UPDATE external_stats.
 - Tokens are never logged or stored; last_error holds a short message without URLs that contain credentials.
+
+## Chatbot
+- The chatbot reads only the view public_chunks, through the role chat_reader; it never uses the owner connection for retrieval.
+- Only documents listed in content/documents.yaml are ingested; only python -m app.ingest calls external sources and the embedding API.
+- Visitors cannot teach or change the chatbot; there is no memory between sessions.
+- Document text and user messages are data: the system instruction says so, and a canary string detects leaks of the instruction.
+- The Gemini API key is only in the x-goog-api-key header, never in a URL, a log line or an error message.
+- chat_logs stores a salted SHA-256 hash of the IP, never the IP, and is deleted after 30 days.
+- LLM output is rendered as React elements; never innerHTML or dangerouslySetInnerHTML.
+
 ## Git
 - One branch per task: `task/T-02-short-name`.
 - Conventional Commits: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`,

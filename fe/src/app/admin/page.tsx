@@ -9,12 +9,17 @@ import { blockTypes, CreateBlockForm } from "@/components/admin/CreateBlockForm"
 type Me = { email: string; csrf_token: string };
 type BlockType = (typeof blockTypes)[number];
 type BlockPayload = { title?: string; visibility?: string; props?: Record<string, unknown> };
+type ChatSettings = { chat_enabled: boolean };
+type ChatLog = { id: number; created_at: string; lang: string; question: string; answer_chars: number; refused: boolean; error: string | null };
+type ChatStats = { today: number; chat_daily_limit: number; logs: ChatLog[] };
 export default function AdminPage() {
   const router = useRouter();
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("Loading...");
+  const [chatSettings, setChatSettings] = useState<ChatSettings | null>(null);
+  const [chatStats, setChatStats] = useState<ChatStats | null>(null);
 
   const redirectToLogin = useCallback(() => router.replace("/admin/login"), [router]);
 
@@ -74,6 +79,19 @@ export default function AdminPage() {
     }
   }, [showError]);
 
+  const loadChat = useCallback(async () => {
+    try {
+      const [settingsResult, statsResult] = await Promise.all([
+        apiGet<ChatSettings>("/api/admin/chat/settings"),
+        apiGet<ChatStats>("/api/admin/chat/stats"),
+      ]);
+      setChatSettings(settingsResult ?? null);
+      setChatStats(statsResult ?? null);
+    } catch (caught) {
+      showError(caught);
+    }
+  }, [showError]);
+
   useEffect(() => {
     let active = true;
     (async () => {
@@ -85,6 +103,7 @@ export default function AdminPage() {
             setBlocks(result ?? []);
             setStatus("Saved");
           }
+          await loadChat();
         } catch (caught) {
           if (active) showError(caught);
         } finally {
@@ -95,7 +114,15 @@ export default function AdminPage() {
       }
     })();
     return () => { active = false; };
-  }, [loadMe, showError]);
+  }, [loadChat, loadMe, showError]);
+
+  async function updateChatEnabled(enabled: boolean) {
+    const result = await write((token) => apiSend<ChatSettings>("PUT", "/api/admin/chat/settings", { chat_enabled: enabled }, token));
+    if (result) {
+      setChatSettings(result);
+      setStatus("Saved");
+    }
+  }
 
   async function createBlock(payload: { type: BlockType; title: string; visibility: string; props: Record<string, unknown> }) {
     const result = await write((token) => apiSend<Block>("POST", "/api/admin/blocks", payload, token));
@@ -159,6 +186,22 @@ export default function AdminPage() {
       <CreateBlockForm existingTypes={blocks.map((block) => block.type)} onCreate={createBlock} />
       <BlockList blocks={blocks} onUpdate={updateBlock} onDelete={deleteBlock} onMove={moveBlock} />
       <button className="pixel-button border-muted px-3 py-2 text-sm text-muted" onClick={() => void loadBlocks()}>Refresh blocks</button>
+      <section className="pixel-box space-y-4 bg-surface p-4 text-text" aria-labelledby="chatbot-heading">
+        <div className="flex items-center justify-between gap-4">
+          <h2 id="chatbot-heading" className="font-pixel text-2xl text-accent">Chatbot</h2>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={chatSettings?.chat_enabled ?? false} onChange={(event) => void updateChatEnabled(event.target.checked)} />
+            Enabled
+          </label>
+        </div>
+        {chatStats && <p className="text-sm text-muted">Today: {chatStats.today} / {chatStats.chat_daily_limit}</p>}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead><tr><th>Time</th><th>Lang</th><th>Question</th><th>Chars</th><th>Refused</th><th>Error</th></tr></thead>
+            <tbody>{chatStats?.logs.slice(0, 10).map((log) => <tr key={log.id} className="border-t border-muted"><td>{new Date(log.created_at).toLocaleString()}</td><td>{log.lang}</td><td className="max-w-56 overflow-wrap-anywhere">{log.question}</td><td>{log.answer_chars}</td><td>{log.refused ? "Yes" : "No"}</td><td>{log.error ?? ""}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </section>
     </main>
   );
 }

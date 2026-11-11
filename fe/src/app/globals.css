@@ -63,6 +63,63 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+.cazung-widget {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.cazung-canvas {
+  position: fixed;
+  z-index: 41;
+  width: auto;
+  height: auto;
+  image-rendering: pixelated;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.cazung-panel {
+  position: fixed;
+  bottom: 116px;
+  z-index: 42;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 140px));
+  overflow: hidden;
+  background: var(--color-surface);
+  color: var(--color-text);
+  pointer-events: auto;
+}
+
+.cazung-messages {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.cazung-message {
+  max-width: 90%;
+  margin-bottom: 8px;
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+}
+
+.cazung-message p { margin: 0 0 6px; }
+.cazung-message p:last-child { margin-bottom: 0; }
+.cazung-message ul { margin: 4px 0; padding-left: 20px; }
+.cazung-message code { background: var(--color-bg); padding: 0 3px; }
+.cazung-message a { color: var(--color-accent); }
+.cazung-user { margin-left: auto; background: var(--color-accent); color: var(--color-bg); }
+.cazung-assistant { background: var(--color-bg); }
+.cazung-error { margin: 8px; border: 2px solid var(--color-danger); padding: 6px; color: var(--color-danger); }
+.cazung-turnstile { min-height: 0; padding: 0 8px; }
+.cazung-composer { display: grid; grid-template-columns: 1fr auto; gap: 6px; border-top: 2px solid currentColor; padding: 8px; }
+.cazung-composer textarea { min-width: 0; min-height: 42px; resize: vertical; padding: 6px; color: var(--color-bg); }
+.cazung-composer span { grid-column: 1; color: var(--color-muted); font-size: 0.75rem; }
+.cazung-composer button { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; padding: 0 10px; }
+
 .pixel-button:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 0 currentColor;

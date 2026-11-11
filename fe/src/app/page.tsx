@@ -10,6 +10,7 @@ import { LinksBlock } from "@/components/blocks/LinksBlock";
 import { ProfileBlock } from "@/components/blocks/ProfileBlock";
 import { SkillsBlock } from "@/components/blocks/SkillsBlock";
 import { StatsBlock } from "@/components/blocks/StatsBlock";
+import { CazungWidget } from "@/components/cazung/CazungWidget";
 
 function renderBlock(block: Block, variant: "sidebar" | "main" = "main") {
   switch (block.type) {
@@ -117,6 +118,7 @@ export default function Home() {
           {blocks && blocks.length === 0 && <p className="text-muted">No portfolio content yet.</p>}
         </div>
       </main>
+      <CazungWidget />
     </div>
   );
 }

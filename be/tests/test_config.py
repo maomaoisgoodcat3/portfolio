@@ -8,6 +8,8 @@ FERNET_KEY = "0" * 43 + "="
 
 def settings_kwargs(**overrides: object) -> dict[str, object]:
     values: dict[str, object] = {
+        "_env_file": None,
+        "DATABASE_URL": None,
         "TOTP_ENC_KEY": FERNET_KEY,
         "POSTGRES_USER": "user",
         "POSTGRES_PASSWORD": "password",
@@ -50,6 +52,8 @@ def test_missing_postgres_settings_error_does_not_contain_password() -> None:
 
     with pytest.raises(ValidationError) as error:
         Settings(
+            _env_file=None,
+            DATABASE_URL=None,
             TOTP_ENC_KEY=FERNET_KEY,
             POSTGRES_PASSWORD=password,
             POSTGRES_USER=None,
