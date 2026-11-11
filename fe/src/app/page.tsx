@@ -67,27 +67,36 @@ export default function Home() {
   const profile = orderedBlocks.find((block) => block.type === "profile");
   const links = orderedBlocks.filter((block) => block.type === "links");
   const contacts = orderedBlocks.filter((block) => block.type === "contact");
+  const hasProfile = profile !== undefined;
+  const hasLinksOrContacts = links.length > 0 || contacts.length > 0;
+  const hasSidebar = hasProfile || hasLinksOrContacts;
 
   return (
     <div className="min-h-screen bg-bg">
-      <aside className="w-full bg-bg lg:fixed lg:inset-y-0 lg:top-0 lg:left-0 lg:z-20 lg:flex lg:h-screen lg:w-1/4 lg:flex-col">
-        <div className="lg:grid lg:h-screen lg:grid-rows-2 lg:gap-3 lg:p-4">
-          <div className="min-h-0">
-          {profile && renderBlock(profile, "sidebar")}
-          </div>
-          <div className="pixel-box min-h-0 bg-surface p-2 text-text lg:p-3">
-            <div className="pixel-scroll min-h-0 overflow-visible overflow-x-hidden lg:h-full lg:overflow-y-auto">
-              <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                {links.map((block) => renderBlock(block, "sidebar"))}
+      {hasSidebar && (
+        <aside className="w-full bg-bg lg:fixed lg:inset-y-0 lg:top-0 lg:left-0 lg:z-20 lg:flex lg:h-screen lg:w-1/4 lg:flex-col">
+          <div className={`lg:grid lg:h-screen ${hasProfile && hasLinksOrContacts ? "lg:grid-rows-2" : "lg:grid-rows-1"} lg:gap-3 lg:p-4`}>
+            {hasProfile && (
+              <div className="min-h-0">
+                {profile && renderBlock(profile, "sidebar")}
               </div>
-              <div className="mt-2 space-y-2">
-                {contacts.map((block) => renderBlock(block, "sidebar"))}
+            )}
+            {hasLinksOrContacts && (
+              <div className="pixel-box min-h-0 bg-surface p-2 text-text lg:p-3">
+                <div className="pixel-scroll min-h-0 overflow-visible overflow-x-hidden lg:h-full lg:overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                    {links.map((block) => renderBlock(block, "sidebar"))}
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    {contacts.map((block) => renderBlock(block, "sidebar"))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-      </aside>
-      <main className="w-full overflow-wrap-anywhere px-4 py-4 sm:px-8 sm:py-12 lg:ml-[25%] lg:w-[75%]">
+        </aside>
+      )}
+      <main className={`w-full overflow-wrap-anywhere px-4 py-4 sm:px-8 sm:py-12 ${hasSidebar ? "lg:ml-[25%] lg:w-[75%]" : ""}`}>
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
           {error && <p className="pixel-box border-danger bg-surface p-4 text-danger">{error}</p>}
           {!error && blocks === null && <p className="text-muted">Loading portfolio...</p>}
