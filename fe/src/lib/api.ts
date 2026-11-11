@@ -39,6 +39,10 @@ export type Block = {
   updated_at: string;
 };
 
+export type ChatSource = { title: string; url: string | null; access: "public" | "private" };
+export type ChatResponse = { answer: string; sources: ChatSource[]; refused: boolean };
+export type ChatHistoryItem = { role: "user" | "assistant"; content: string };
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -126,4 +130,16 @@ export function apiSend<T>(
   csrfToken?: string,
 ): Promise<T | undefined> {
   return request<T>(method, path, body, csrfToken);
+}
+
+export function chat(
+  message: string,
+  history: ChatHistoryItem[],
+  turnstileToken: string,
+): Promise<ChatResponse | undefined> {
+  return request<ChatResponse>("POST", "/api/chat", {
+    message,
+    history,
+    turnstile_token: turnstileToken,
+  });
 }
