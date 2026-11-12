@@ -21,3 +21,15 @@
   title: Neuro Surgeon Research
   kind: pdf
   source: NeuroSurgeon.pdf
+
+- slug: ManhPham-Portfolio
+  title: About ManhPham
+  kind: markdown
+  source: about.md
+  access: public
+
+- slug: Cazung-Chatbot
+  title: Cazung Chatbot
+  kind: github_readme
+  source: maomaoisgoodcat3/Cazung
+  public_url: https://github.com/maomaoisgoodcat3/Cazung
