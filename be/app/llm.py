@@ -64,7 +64,7 @@ class GeminiClient:
             "contents": contents,
             "generationConfig": {
                 "temperature": 0.3,
-                "maxOutputTokens": 600,
+                "maxOutputTokens": 1024,
             },
         }
         response = self._request(
