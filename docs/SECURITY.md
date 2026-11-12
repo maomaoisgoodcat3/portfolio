@@ -19,3 +19,9 @@ How this portfolio protects its single admin account and its public data. Checke
 - Page CSP allows 'unsafe-inline' (no nonces while cacheComponents is on) and images from any https origin until avatar upload exists.
 - A burst of parallel first login attempts can exceed the 5-try limit; fix with an atomic upsert after deploy.
 - Contact text is hidden behind Reveal but is still in the public API response.
+
+## Chatbot
+- Data layer: retrieval uses role chat_reader, which can only SELECT the view public_chunks.
+- Abuse: kill switch, per-IP limits, Cloudflare Turnstile, daily cap, length limits.
+- Prompt injection: documents and messages are treated as data; a canary string detects instruction leaks; eval results: <attacks x/12, questions y/12, date>.
+- Privacy: salted IP hashes, 30-day log retention, visitor notice about Gemini data use.
