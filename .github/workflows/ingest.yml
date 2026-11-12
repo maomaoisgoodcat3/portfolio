@@ -1,0 +1,40 @@
+name: Ingest documents
+
+on:
+  schedule:
+    - cron: "41 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: be/requirements.txt
+
+      - name: Install backend dependencies
+        run: python -m pip install -r be/requirements.txt
+
+      - name: Ingest documents
+        working-directory: be
+        env:
+          DATABASE_URL: ${{ secrets.RAG_DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.STATS_GITHUB_TOKEN }}
+        run: python -m app.ingest
